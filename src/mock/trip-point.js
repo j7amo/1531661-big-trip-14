@@ -53,13 +53,14 @@ const tripPointAboutDescriptions = [
   'In rutrum ac purus sit amet tempus.',
 ];
 
+// генерируем фотки
 const generateTripPointsPhotos = () => {
   return new Array(getRandomInt(MIN_PHOTOS_LENGTH, MAX_PHOTOS_LENGTH))
     .fill()
     .map(() => `${MOCK_PHOTO_URL}${getRandomInt(MIN_PHOTO_NUMBER, MAX_PHOTO_NUMBER)}`);
 };
 
-//функция, которая генерирует нужное количество пунктов назначения
+// функция, которая генерирует нужное количество пунктов назначения
 const generateDestinations = (numberOfDestinations) => {
   const destinations = new Map();
   for (let i = 0; i < numberOfDestinations; i++) {
@@ -103,6 +104,7 @@ const generateOffers = () => {
   return offers;
 };
 
+// генерируем точки маршрута
 export const generateTripPoints = (numberOfTripPoints) => {
   const tripPoints = new Map();
   const destinations = generateDestinations(tripPointDestinations.length);
