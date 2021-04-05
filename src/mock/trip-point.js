@@ -1,4 +1,5 @@
 import { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements } from '../util.js';
+import { dayjs } from 'dayjs';
 
 const DESCRIPTION_NUMBER_START = 1;
 const DESCRIPTION_NUMBER_END = 5;
@@ -13,6 +14,9 @@ const PRICE_MIN = 10;
 const PRICE_MAX = 1000;
 const ID_MIN_NUMBER = 1;
 const ID_MAX_NUMBER = 100;
+const DATE_MIN_NUMBER = -7;
+const DATE_CURRENT_NUMBER = 0;
+const DATE_MAX_NUMBER = 7;
 
 const tripPointTypes = [
   'taxi',
@@ -119,8 +123,8 @@ export const generateTripPoints = (numberOfTripPoints) => {
       id,
       {
         price: getRandomInt(PRICE_MIN, PRICE_MAX),
-        beginDate: undefined,
-        endDate: undefined,
+        beginDate: dayjs().add(getRandomInt(DATE_MIN_NUMBER, DATE_MAX_NUMBER), 'day').toDate(),
+        endDate: dayjs(this.beginDate).add(getRandomInt(DATE_CURRENT_NUMBER, DATE_MAX_NUMBER), 'day').toDate(),
         destination: destinations.get(getRandomElement(tripPointDestinations)),
         id: `${id}`,
         isFavorite: Boolean(getRandomInt()),
