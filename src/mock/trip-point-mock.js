@@ -120,7 +120,7 @@ export const generateTripPoints = (numberOfTripPoints) => {
     const id = getRandomInt(ID_MIN_NUMBER, ID_MAX_NUMBER);
     const beginDate = dayjs().add(getRandomInt(DATE_MIN_NUMBER, DATE_MAX_NUMBER), 'day').toDate();
     const endDate = dayjs(beginDate).add(getRandomInt(DATE_CURRENT_NUMBER, DATE_MAX_NUMBER), 'day').add(getRandomInt(MINUTES_MIN_NUMBER, MINUTES_MAX_NUMBER),'minute').toDate();
-    const type = getRandomElement(tripPointTypes);
+    const type = tripPointTypes[i];
     if (tripPoints.has(id)) {
       i--;
       continue;
@@ -131,8 +131,7 @@ export const generateTripPoints = (numberOfTripPoints) => {
         price: getRandomInt(PRICE_MIN, PRICE_MAX),
         beginDate: beginDate,
         endDate: endDate,
-        destination: destinations.get(getRandomElement(tripPointDestinations)),
-        id: `${id}`,
+        destination: destinations.get(tripPointDestinations[i]),
         isFavorite: Boolean(getRandomInt()),
         offers: offers.get(type).offers,
         type: type,

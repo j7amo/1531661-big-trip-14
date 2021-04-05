@@ -13,7 +13,7 @@ const render = (container, template, place) => {
   container.insertAdjacentHTML(place, template);
 };
 
-const EVENT_COUNT = 15;
+const EVENT_COUNT = 10;
 
 const tripMainElement = document.querySelector('.trip-main');
 const tripInfoElement = tripMainElement.querySelector('.trip-info');
@@ -29,11 +29,12 @@ render(tripEventsElement, createSortTemplate(), 'beforeend');
 render(tripEventsElement, createTripPointsListTemplate(), 'beforeend');
 
 const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
-render(tripEventsList, createTripPointEditionFormTemplate(), 'beforeend');
+
+//генерим моки
+const tripPointsMocks = generateTripPoints(EVENT_COUNT);
+render(tripEventsList, createTripPointEditionFormTemplate(Array.from(tripPointsMocks.values()), Array.from(tripPointsMocks.values())[0]), 'beforeend');
 render(tripEventsList, createTripPointCreationFormTemplate(), 'beforeend');
 
-const tripPointsMocks = generateTripPoints(EVENT_COUNT);
 Array.from(tripPointsMocks.values()).forEach((tripPointData) => {
   render(tripEventsList, createTripPointTemplate(tripPointData), 'beforeend');
 });
-

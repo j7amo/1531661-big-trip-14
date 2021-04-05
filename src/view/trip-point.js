@@ -6,7 +6,6 @@ export const createTripPointTemplate = (tripPointData) => {
     beginDate,
     endDate,
     destination,
-    id,
     isFavorite,
     offers,
     type,
