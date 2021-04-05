@@ -1,5 +1,5 @@
 import { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements } from '../util.js';
-import { dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 
 const DESCRIPTION_NUMBER_START = 1;
 const DESCRIPTION_NUMBER_END = 5;
@@ -17,6 +17,8 @@ const ID_MAX_NUMBER = 100;
 const DATE_MIN_NUMBER = -7;
 const DATE_CURRENT_NUMBER = 0;
 const DATE_MAX_NUMBER = 7;
+const MINUTES_MIN_NUMBER = 30;
+const MINUTES_MAX_NUMBER = 300;
 
 const tripPointTypes = [
   'taxi',
@@ -41,6 +43,7 @@ const tripPointDestinations = [
   'Dmitrov',
   'Mitischy',
   'Ramenskoye',
+  'Moscow',
 ];
 
 const tripPointAboutDescriptions = [
@@ -68,7 +71,7 @@ const generateTripPointsPhotos = () => {
 const generateDestinations = (numberOfDestinations) => {
   const destinations = new Map();
   for (let i = 0; i < numberOfDestinations; i++) {
-    const key = getRandomElement(tripPointDestinations);
+    const key = tripPointDestinations[i];
     const description = getFixedLengthArrayOfRandomElements(tripPointAboutDescriptions, getRandomInt(DESCRIPTION_NUMBER_START, DESCRIPTION_NUMBER_END)).join('');
     const photos = generateTripPointsPhotos();
     if (destinations.has(key)) {
@@ -115,6 +118,9 @@ export const generateTripPoints = (numberOfTripPoints) => {
   const offers = generateOffers();
   for (let i = 0; i < numberOfTripPoints; i++) {
     const id = getRandomInt(ID_MIN_NUMBER, ID_MAX_NUMBER);
+    const beginDate = dayjs().add(getRandomInt(DATE_MIN_NUMBER, DATE_MAX_NUMBER), 'day').toDate();
+    const endDate = dayjs(beginDate).add(getRandomInt(DATE_CURRENT_NUMBER, DATE_MAX_NUMBER), 'day').add(getRandomInt(MINUTES_MIN_NUMBER, MINUTES_MAX_NUMBER),'minute').toDate();
+    const type = getRandomElement(tripPointTypes);
     if (tripPoints.has(id)) {
       i--;
       continue;
@@ -123,13 +129,13 @@ export const generateTripPoints = (numberOfTripPoints) => {
       id,
       {
         price: getRandomInt(PRICE_MIN, PRICE_MAX),
-        beginDate: dayjs().add(getRandomInt(DATE_MIN_NUMBER, DATE_MAX_NUMBER), 'day').toDate(),
-        endDate: dayjs(this.beginDate).add(getRandomInt(DATE_CURRENT_NUMBER, DATE_MAX_NUMBER), 'day').toDate(),
+        beginDate: beginDate,
+        endDate: endDate,
         destination: destinations.get(getRandomElement(tripPointDestinations)),
         id: `${id}`,
         isFavorite: Boolean(getRandomInt()),
-        offers: offers.get(getRandomElement(tripPointTypes)),
-        type: this.offers.type,
+        offers: offers.get(type).offers,
+        type: type,
       });
   }
   return tripPoints;

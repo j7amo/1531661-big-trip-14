@@ -6,13 +6,14 @@ import { createSortTemplate } from './view/sort.js';
 import { createTripPointsListTemplate } from './view/trip-points-list.js';
 import { createTripPointCreationFormTemplate } from './view/trip-point-add.js';
 import { createTripPointEditionFormTemplate } from './view/trip-point-edit.js';
+import { generateTripPoints } from './mock/trip-point-mock.js';
 import { createTripPointTemplate } from './view/trip-point.js';
 
 const render = (container, template, place) => {
   container.insertAdjacentHTML(place, template);
 };
 
-const EVENT_COUNT = 3;
+const EVENT_COUNT = 15;
 
 const tripMainElement = document.querySelector('.trip-main');
 const tripInfoElement = tripMainElement.querySelector('.trip-info');
@@ -31,6 +32,8 @@ const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
 render(tripEventsList, createTripPointEditionFormTemplate(), 'beforeend');
 render(tripEventsList, createTripPointCreationFormTemplate(), 'beforeend');
 
-for (let i = 0; i < EVENT_COUNT; i++) {
-  render(tripEventsList, createTripPointTemplate(), 'beforeend');
-}
+const tripPointsMocks = generateTripPoints(EVENT_COUNT);
+Array.from(tripPointsMocks.values()).forEach((tripPointData) => {
+  render(tripEventsList, createTripPointTemplate(tripPointData), 'beforeend');
+});
+
