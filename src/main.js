@@ -21,8 +21,12 @@ const tripControlsNavigationElement = tripMainElement.querySelector('.trip-contr
 const tripFiltersElement = tripMainElement.querySelector('.trip-controls__filters');
 const tripEventsElement = document.querySelector('.trip-events');
 
-render(tripInfoElement, createTripInfoTemplate(), 'beforeend');
-render(tripInfoElement, createTripCostTemplate(), 'beforeend');
+//генерим моки
+const tripPointsMocks = generateTripPoints(EVENT_COUNT);
+const prettyMocks = Array.from(tripPointsMocks.values());
+
+render(tripInfoElement, createTripInfoTemplate(prettyMocks), 'beforeend');
+render(tripInfoElement, createTripCostTemplate(prettyMocks), 'beforeend');
 render(tripControlsNavigationElement, createSiteMenuTemplate(), 'beforeend');
 render(tripFiltersElement, createFiltersTemplate(), 'beforeend');
 render(tripEventsElement, createSortTemplate(), 'beforeend');
@@ -30,9 +34,7 @@ render(tripEventsElement, createTripPointsListTemplate(), 'beforeend');
 
 const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
 
-//генерим моки
-const tripPointsMocks = generateTripPoints(EVENT_COUNT);
-render(tripEventsList, createTripPointEditionFormTemplate(Array.from(tripPointsMocks.values()), Array.from(tripPointsMocks.values())[0]), 'beforeend');
+render(tripEventsList, createTripPointEditionFormTemplate(prettyMocks, prettyMocks[0]), 'beforeend');
 render(tripEventsList, createTripPointCreationFormTemplate(), 'beforeend');
 
 Array.from(tripPointsMocks.values()).forEach((tripPointData) => {
