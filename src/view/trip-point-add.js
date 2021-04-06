@@ -1,6 +1,6 @@
 import { getEventTypesMarkup } from '../util.js';
 
-export const createTripPointCreationFormTemplate = (allTripPointsData) => {
+const createTripPointCreationFormTemplate = (allTripPointsData) => {
   return `<li class="trip-events__item">
     <form class="event event--edit" action="#" method="post">
       <header class="event__header">
@@ -118,3 +118,5 @@ export const createTripPointCreationFormTemplate = (allTripPointsData) => {
     </form>
   </li>`;
 };
+
+export { createTripPointCreationFormTemplate };

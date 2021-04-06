@@ -68,9 +68,9 @@ const generateTripPointsPhotos = () => {
 };
 
 // функция, которая генерирует нужное количество пунктов назначения
-const generateDestinations = (numberOfDestinations) => {
+const generateDestinations = () => {
   const destinations = new Map();
-  for (let i = 0; i < numberOfDestinations; i++) {
+  for (let i = 0; i < tripPointDestinations.length; i++) {
     const key = tripPointDestinations[i];
     const description = getFixedLengthArrayOfRandomElements(tripPointAboutDescriptions, getRandomInt(DESCRIPTION_NUMBER_START, DESCRIPTION_NUMBER_END)).join('');
     const photos = generateTripPointsPhotos();
@@ -92,7 +92,7 @@ const generateDestinations = (numberOfDestinations) => {
 };
 
 //функция, которая генерирует офферы
-export const generateOffers = () => {
+const generateOffers = () => {
   const offers = new Map();
   for (let i = 0; i < tripPointTypes.length; i++) {
     const key = tripPointTypes[i];
@@ -112,11 +112,15 @@ export const generateOffers = () => {
 };
 
 // генерируем точки маршрута
-export const generateTripPoints = (numberOfTripPoints, eventTypeToOffersMap) => {
+const generateTripPoints = (numberOfTripPoints, destinations, eventTypeToOffersMap) => {
   const tripPoints = new Map();
-  const destinations = generateDestinations(tripPointDestinations.length);
+  const uniqueIds = new Set();
   for (let i = 0; i < numberOfTripPoints; i++) {
-    const id = getRandomInt(ID_MIN_NUMBER, ID_MAX_NUMBER);
+    let id = i + 1;
+    while (uniqueIds.has(id)) {
+      id += 1;
+    }
+    uniqueIds.add(id);
     const beginDate = dayjs().add(getRandomInt(DATE_MIN_NUMBER, DATE_MAX_NUMBER), 'day').toDate();
     const endDate = dayjs(beginDate).add(getRandomInt(DATE_CURRENT_NUMBER, DATE_MAX_NUMBER), 'day').add(getRandomInt(MINUTES_MIN_NUMBER, MINUTES_MAX_NUMBER),'minute').toDate();
     const type = tripPointTypes[i];
@@ -138,3 +142,5 @@ export const generateTripPoints = (numberOfTripPoints, eventTypeToOffersMap) => 
   }
   return tripPoints;
 };
+
+export { generateDestinations, generateOffers, generateTripPoints };

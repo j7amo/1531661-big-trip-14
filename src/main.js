@@ -1,13 +1,13 @@
-import { createTripInfoTemplate } from './view/trip-info.js';
-import { createTripCostTemplate } from './view/trip-cost.js';
-import { createSiteMenuTemplate } from './view/site-menu';
-import { createFiltersTemplate } from './view/filters.js';
-import { createSortTemplate } from './view/sort.js';
-import { createTripPointsListTemplate } from './view/trip-points-list.js';
-import { createTripPointEditionFormTemplate } from './view/trip-point-edit.js';
-import { generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
-import { createTripPointTemplate } from './view/trip-point.js';
-import { getAvailableOffersMarkup } from './util.js';
+import { createTripInfoView } from './view/trip-info.js';
+import { createTripCostView } from './view/trip-cost.js';
+import { createSiteMenuView } from './view/site-menu';
+import { createFiltersView } from './view/filters.js';
+import { createSortView } from './view/sort.js';
+import { createTripPointsListView } from './view/trip-points-list.js';
+import { createTripPointEditionFormView } from './view/trip-point-edit.js';
+import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
+import { createTripPointView } from './view/trip-point.js';
+import { getAvailableOffersMarkup, createTripPointListElement } from './util.js';
 
 const render = (container, template, place) => {
   container.insertAdjacentHTML(place, template);
@@ -22,30 +22,52 @@ const tripFiltersElement = tripMainElement.querySelector('.trip-controls__filter
 const tripEventsElement = document.querySelector('.trip-events');
 
 //генерим моки
+const destinations = generateDestinations();
 const eventTypeToOffersMap = generateOffers();
-const tripPointsMocks = generateTripPoints(EVENT_COUNT, eventTypeToOffersMap);
-const prettyMocks = Array.from(tripPointsMocks.values());
+const tripPointsMocks = generateTripPoints(EVENT_COUNT, destinations, eventTypeToOffersMap);
 
-render(tripInfoElement, createTripInfoTemplate(prettyMocks), 'beforeend');
-render(tripInfoElement, createTripCostTemplate(prettyMocks), 'beforeend');
-render(tripControlsNavigationElement, createSiteMenuTemplate(), 'beforeend');
-render(tripFiltersElement, createFiltersTemplate(), 'beforeend');
-render(tripEventsElement, createSortTemplate(), 'beforeend');
-render(tripEventsElement, createTripPointsListTemplate(), 'beforeend');
+render(tripInfoElement, createTripInfoView(prettyMocks), 'beforeend');
+render(tripInfoElement, createTripCostView(prettyMocks), 'beforeend');
+render(tripControlsNavigationElement, createSiteMenuView(), 'beforeend');
+render(tripFiltersElement, createFiltersView(), 'beforeend');
+render(tripEventsElement, createSortView(), 'beforeend');
+render(tripEventsElement, createTripPointsListView(), 'beforeend');
 
 const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
 
-render(tripEventsList, createTripPointEditionFormTemplate(prettyMocks, prettyMocks[0], eventTypeToOffersMap), 'beforeend');
+render(tripEventsList, createTripPointListElement(createTripPointEditionFormView(prettyMocks, prettyMocks[0], eventTypeToOffersMap)), 'beforeend');
+
+// рендерим моки
+tripPointsMocks.forEach((tripPointData, id) => {
+  render(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
+});
 
 const eventTypeLabelElement = document.querySelector('label[for = "event-destination-1"]');
 const eventsTypePicker = document.querySelector('.event__type-group');
 const availableOffersContainer = document.querySelector('.event__available-offers');
+
 eventsTypePicker.addEventListener('change', (evt) => {
   eventTypeLabelElement.textContent = evt.target.value;
   const currentEvent = prettyMocks.find((trip) => trip.type === evt.target.value);
   availableOffersContainer.innerHTML = getAvailableOffersMarkup(eventTypeToOffersMap, currentEvent);
 });
 
-Array.from(tripPointsMocks.values()).slice(1).forEach((tripPointData) => {
-  render(tripEventsList, createTripPointTemplate(tripPointData), 'beforeend');
-});
+// const eventRollUpButtons = document.querySelectorAll('.event__rollup-btn');
+//
+// eventRollUpButtons.forEach((button) => {
+//   button.addEventListener('click', (evt) => {
+//     const eventContainer = evt.target.parentNode;
+//     console.log(eventContainer.nodeName);
+//     if (eventContainer.nodeName.toLowerCase() === 'div') {
+//       //const eventId = eventContainer.querySelector('.event__id').textContent;
+//       const eventListElementContainer = eventContainer.parentNode;
+//       eventListElementContainer.removeChild(eventContainer);
+//       render(eventListElementContainer, createTripPointEditionFormView(prettyMocks, prettyMocks[0], eventTypeToOffersMap),'beforeend');
+//     } else if (eventContainer.nodeName.toLowerCase() === 'header') {
+//       const eventEditionFormContainer = eventContainer.parentNode;
+//       const eventListElementContainer = eventEditionFormContainer.parentNode;
+//       eventListElementContainer.removeChild(eventEditionFormContainer);
+//       render(eventListElementContainer, createTripPointEditionFormView(prettyMocks, prettyMocks[0], eventTypeToOffersMap),'beforeend');
+//     }
+//   });
+// });

@@ -76,4 +76,8 @@ const getAvailableOffersMarkup = (eventTypeToOffersMap, currentTripPoint) => {
   return availableOffersOptionsMarkup;
 };
 
-export { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements, getEventTypesMarkup, getAvailableOffersMarkup };
+const createTripPointListElement = (internalElementMarkup) => {
+  return `<li class="trip-events__item">${internalElementMarkup}</li>`;
+};
+
+export { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements, getEventTypesMarkup, getAvailableOffersMarkup, createTripPointListElement };

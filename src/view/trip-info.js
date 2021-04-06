@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 
-export const createTripInfoTemplate = (allTripPointsData) => {
+const createTripInfoView = (allTripPointsData) => {
   const sortedTripPoints = allTripPointsData.slice().sort((firstPoint, secondPoint) => dayjs(firstPoint.beginDate).diff(dayjs(secondPoint.beginDate)));
   const departureTo = sortedTripPoints[0].destination.name;
   const middleTripPoint = sortedTripPoints[Math.floor(sortedTripPoints.length / 2)].destination.name;
@@ -14,3 +14,5 @@ export const createTripInfoTemplate = (allTripPointsData) => {
     <p class="trip-info__dates">${beginDate}&nbsp;&mdash;&nbsp;${endDate}</p>
   </div>`;
 };
+
+export { createTripInfoView };
