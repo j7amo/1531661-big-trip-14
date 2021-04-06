@@ -1,5 +1,9 @@
 import dayjs from 'dayjs';
 
+const MINUTES_IN_DAY = 1440;
+const MINUTES_IN_HOUR = 60;
+const MAX_NUMBER_WITH_LEADING_ZERO = 9;
+
 export const createTripPointTemplate = (tripPointData) => {
   const {
     price,
@@ -18,6 +22,28 @@ export const createTripPointTemplate = (tripPointData) => {
   const endFullDateWithTimeFormatted = dayjs(endDate).format('YYYY-MM-DDTHH:mm');
   const endDateTimeFormatted = dayjs(endDate).format('HH-mm');
   const eventDuration = dayjs(endDate).diff(dayjs(beginDate), 'minute');
+
+  let eventDurationFormatted = '';
+
+  if (eventDuration >= MINUTES_IN_DAY) {
+    const fullDays = Math.floor(eventDuration / MINUTES_IN_DAY);
+    const fullHours = Math.floor((eventDuration - fullDays * MINUTES_IN_DAY) / MINUTES_IN_HOUR);
+    const fullMinutes = eventDuration - fullDays * MINUTES_IN_DAY - fullHours * MINUTES_IN_HOUR;
+    const fullDaysFormatted = (fullDays > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullDays}` : `0${fullDays}`;
+    const fullHoursFormatted = (fullHours > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullHours}` : `0${fullHours}`;
+    const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
+    eventDurationFormatted = `${fullDaysFormatted}D ${fullHoursFormatted}H ${fullMinutesFormatted}M`;
+  } else if (eventDuration < MINUTES_IN_DAY && eventDuration >= MINUTES_IN_HOUR) {
+    const fullHours = Math.floor(eventDuration / MINUTES_IN_HOUR);
+    const fullMinutes = eventDuration - fullHours * MINUTES_IN_HOUR;
+    const fullHoursFormatted = (fullHours > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullHours}` : `0${fullHours}`;
+    const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
+    eventDurationFormatted = `${fullHoursFormatted}H ${fullMinutesFormatted}M`;
+  } else {
+    const fullMinutes = eventDuration;
+    const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
+    eventDurationFormatted = `${fullMinutesFormatted}M`;
+  }
 
   let listOfOffers = '';
   offers.forEach(({title, price}) => {
@@ -44,7 +70,7 @@ export const createTripPointTemplate = (tripPointData) => {
           &mdash;
           <time class="event__end-time" datetime="${endFullDateWithTimeFormatted}">${endDateTimeFormatted}</time>
         </p>
-        <p class="event__duration">${eventDuration}M</p>
+        <p class="event__duration">${eventDurationFormatted}</p>
       </div>
       <p class="event__price">
         &euro;&nbsp;<span class="event__price-value">${price}</span>
