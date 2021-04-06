@@ -4,10 +4,10 @@ import { createSiteMenuTemplate } from './view/site-menu';
 import { createFiltersTemplate } from './view/filters.js';
 import { createSortTemplate } from './view/sort.js';
 import { createTripPointsListTemplate } from './view/trip-points-list.js';
-import { createTripPointCreationFormTemplate } from './view/trip-point-add.js';
 import { createTripPointEditionFormTemplate } from './view/trip-point-edit.js';
-import { generateTripPoints } from './mock/trip-point-mock.js';
+import { generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
 import { createTripPointTemplate } from './view/trip-point.js';
+import { getAvailableOffersMarkup } from './util.js';
 
 const render = (container, template, place) => {
   container.insertAdjacentHTML(place, template);
@@ -22,7 +22,8 @@ const tripFiltersElement = tripMainElement.querySelector('.trip-controls__filter
 const tripEventsElement = document.querySelector('.trip-events');
 
 //генерим моки
-const tripPointsMocks = generateTripPoints(EVENT_COUNT);
+const eventTypeToOffersMap = generateOffers();
+const tripPointsMocks = generateTripPoints(EVENT_COUNT, eventTypeToOffersMap);
 const prettyMocks = Array.from(tripPointsMocks.values());
 
 render(tripInfoElement, createTripInfoTemplate(prettyMocks), 'beforeend');
@@ -34,9 +35,17 @@ render(tripEventsElement, createTripPointsListTemplate(), 'beforeend');
 
 const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
 
-render(tripEventsList, createTripPointEditionFormTemplate(prettyMocks, prettyMocks[0]), 'beforeend');
-render(tripEventsList, createTripPointCreationFormTemplate(), 'beforeend');
+render(tripEventsList, createTripPointEditionFormTemplate(prettyMocks, prettyMocks[0], eventTypeToOffersMap), 'beforeend');
 
-Array.from(tripPointsMocks.values()).forEach((tripPointData) => {
+const eventTypeLabelElement = document.querySelector('label[for = "event-destination-1"]');
+const eventsTypePicker = document.querySelector('.event__type-group');
+const availableOffersContainer = document.querySelector('.event__available-offers');
+eventsTypePicker.addEventListener('change', (evt) => {
+  eventTypeLabelElement.textContent = evt.target.value;
+  const currentEvent = prettyMocks.find((trip) => trip.type === evt.target.value);
+  availableOffersContainer.innerHTML = getAvailableOffersMarkup(eventTypeToOffersMap, currentEvent);
+});
+
+Array.from(tripPointsMocks.values()).slice(1).forEach((tripPointData) => {
   render(tripEventsList, createTripPointTemplate(tripPointData), 'beforeend');
 });

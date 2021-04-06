@@ -1,62 +1,32 @@
 import dayjs from 'dayjs';
-import {getRandomInt} from '../util.js';
+import { getEventTypesMarkup, getAvailableOffersMarkup } from '../util.js';
 
-export const createTripPointEditionFormTemplate = (allTripPointsData, currentTripPointData) => {
-  let destinationOptionsMarkup = '';
-  let eventTypeItemsMarkup = '';
-
-  allTripPointsData.forEach(({destination, type}) => {
-    const destinationsTemplate = `<option value="${destination.name}"></option>`;
-    destinationOptionsMarkup += destinationsTemplate;
-    const eventTypesTemplate = `<div class="event__type-item">
-    <input id="event-type-${type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}">
-    <label class="event__type-label  event__type-label--${type}" for="event-type-${type}-1">${type}</label>
-  </div>`;
-    eventTypeItemsMarkup += eventTypesTemplate;
-  });
-
+export const createTripPointEditionFormTemplate = (allTripPointsData, currentTripPointData, eventTypeToOffersMap) => {
   const {
     price: currentPrice,
     beginDate: currentBeginDate,
     endDate: currentEndDate,
     destination: currentDestination,
-    //isFavorite: currentIsFavorite,
-    offers: currentOffers,
     type: currentType,
   } = currentTripPointData;
 
   const beginDateWithTimeFormatted = dayjs(currentBeginDate).format('DD/MM/YY HH:mm');
   const endDateWithTimeFormatted = dayjs(currentEndDate).format('DD/MM/YY HH:mm');
 
-  let offersOptionsMarkup = '';
-  for (let i = 0; i < currentOffers.length; i++) {
-    const randomId = getRandomInt(0, Number.MAX_VALUE);
-    const offerTemplate = `<div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${currentType}">
-      <label class="event__offer-label" for="event-offer-${randomId}-1">
-        <span class="event__offer-title">${currentOffers[i].title}</span>
-        &plus;&euro;&nbsp;
-        <span class="event__offer-price">${currentOffers[i].price}</span>
-      </label>
-    </div>`;
-
-    offersOptionsMarkup += offerTemplate;
-  }
-
   return `<li class="trip-events__item">
     <form class="event event--edit" action="#" method="post">
       <header class="event__header">
         <div class="event__type-wrapper">
-          <label class="event__type  event__type-btn" for="event-type-toggle-1">
+          <label class="event__type  event__type-btn" for="event-type-edit-toggle-1">
             <span class="visually-hidden">Choose event type</span>
             <img class="event__type-icon" width="17" height="17" src="img/icons/${currentType}.png" alt="Event type icon">
           </label>
-          <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+          <input class="event__type-toggle  visually-hidden" id="event-type-edit-toggle-1" type="checkbox">
 
           <div class="event__type-list">
             <fieldset class="event__type-group">
               <legend class="visually-hidden">Event type</legend>
-              ${eventTypeItemsMarkup}
+              ${getEventTypesMarkup(allTripPointsData, currentTripPointData).eventTypeItemsMarkup}
             </fieldset>
           </div>
         </div>
@@ -67,7 +37,7 @@ export const createTripPointEditionFormTemplate = (allTripPointsData, currentTri
           </label>
           <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination.name}" list="destination-list-1">
           <datalist id="destination-list-1">
-            ${destinationOptionsMarkup}
+            ${getEventTypesMarkup(allTripPointsData, currentTripPointData).destinationOptionsMarkup}
           </datalist>
         </div>
 
@@ -98,7 +68,7 @@ export const createTripPointEditionFormTemplate = (allTripPointsData, currentTri
           <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
           <div class="event__available-offers">
-            ${offersOptionsMarkup}
+            ${getAvailableOffersMarkup(eventTypeToOffersMap, currentTripPointData)}
           </div>
         </section>
 

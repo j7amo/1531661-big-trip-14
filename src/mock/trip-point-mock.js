@@ -92,7 +92,7 @@ const generateDestinations = (numberOfDestinations) => {
 };
 
 //функция, которая генерирует офферы
-const generateOffers = () => {
+export const generateOffers = () => {
   const offers = new Map();
   for (let i = 0; i < tripPointTypes.length; i++) {
     const key = tripPointTypes[i];
@@ -112,10 +112,9 @@ const generateOffers = () => {
 };
 
 // генерируем точки маршрута
-export const generateTripPoints = (numberOfTripPoints) => {
+export const generateTripPoints = (numberOfTripPoints, eventTypeToOffersMap) => {
   const tripPoints = new Map();
   const destinations = generateDestinations(tripPointDestinations.length);
-  const offers = generateOffers();
   for (let i = 0; i < numberOfTripPoints; i++) {
     const id = getRandomInt(ID_MIN_NUMBER, ID_MAX_NUMBER);
     const beginDate = dayjs().add(getRandomInt(DATE_MIN_NUMBER, DATE_MAX_NUMBER), 'day').toDate();
@@ -133,7 +132,7 @@ export const generateTripPoints = (numberOfTripPoints) => {
         endDate: endDate,
         destination: destinations.get(tripPointDestinations[i]),
         isFavorite: Boolean(getRandomInt()),
-        offers: offers.get(type).offers,
+        offers: eventTypeToOffersMap.get(type).offers,
         type: type,
       });
   }
