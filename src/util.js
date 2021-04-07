@@ -1,6 +1,3 @@
-import {createTripPointEditView} from "./view/trip-point-edit";
-import {createTripPointView} from "./view/trip-point";
-
 const getRandomInt = (rangeStart = 0, rangeEnd = 1) => {
 
   if (rangeEnd <= rangeStart) {
@@ -60,6 +57,7 @@ const getEventTypesMarkup = (eventTypeToOffersMap, destinationsMap, currentTripP
 
 const getAvailableOffersMarkup = (eventTypeToOffersMap, currentTripPoint) => {
   const {
+    offers: selectedOffers,
     type: currentType,
   } = currentTripPoint;
 
@@ -67,8 +65,9 @@ const getAvailableOffersMarkup = (eventTypeToOffersMap, currentTripPoint) => {
   const availableOffers = eventTypeToOffersMap.get(currentType).offers;
   for (let i = 0; i < availableOffers.length; i++) {
     const randomId = getRandomInt(0, Number.MAX_VALUE);
+    const checkboxChecked = selectedOffers.includes(availableOffers[i]) ? 'checked' : '';
     const offerTemplate = `<div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${currentType}">
+      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${currentType}" ${checkboxChecked}>
       <label class="event__offer-label" for="event-offer-${randomId}-1">
         <span class="event__offer-title">${availableOffers[i].title}</span>
         &plus;&euro;&nbsp;
