@@ -26,7 +26,7 @@ const destinations = generateDestinations();
 const eventTypeToOffersMap = generateOffers();
 const tripPointsMocks = generateTripPoints(EVENT_COUNT, destinations, eventTypeToOffersMap);
 
-render(tripInfoElement, createTripInfoView(prettyMocks), 'beforeend');
+render(tripInfoElement, createTripInfoView(tripPointsMocks), 'beforeend');
 render(tripInfoElement, createTripCostView(prettyMocks), 'beforeend');
 render(tripControlsNavigationElement, createSiteMenuView(), 'beforeend');
 render(tripFiltersElement, createFiltersView(), 'beforeend');
