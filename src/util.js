@@ -1,3 +1,6 @@
+import {createTripPointEditView} from "./view/trip-point-edit";
+import {createTripPointView} from "./view/trip-point";
+
 const getRandomInt = (rangeStart = 0, rangeEnd = 1) => {
 
   if (rangeEnd <= rangeStart) {
@@ -83,4 +86,10 @@ const createTripPointListElement = (internalElementMarkup) => {
   return `<li class="trip-events__item">${internalElementMarkup}</li>`;
 };
 
-export { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements, getEventTypesMarkup, getAvailableOffersMarkup, createTripPointListElement };
+const removeAllChildNodes = (parentNode) => {
+  while (parentNode.firstChild) {
+    parentNode.removeChild(parentNode.lastChild);
+  }
+};
+
+export { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements, getEventTypesMarkup, getAvailableOffersMarkup, createTripPointListElement, removeAllChildNodes };

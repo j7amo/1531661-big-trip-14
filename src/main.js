@@ -7,7 +7,8 @@ import { createTripPointsListView } from './view/trip-points-list.js';
 import { createTripPointEditView } from './view/trip-point-edit.js';
 import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
 import { createTripPointView } from './view/trip-point.js';
-import { getAvailableOffersMarkup, createTripPointListElement } from './util.js';
+import { getAvailableOffersMarkup, createTripPointListElement, removeAllChildNodes } from './util.js';
+import dayjs from 'dayjs';
 
 const render = (container, template, place) => {
   container.insertAdjacentHTML(place, template);
@@ -52,6 +53,37 @@ eventsTypePicker.addEventListener('change', (evt) => {
   eventTypeLabelElement.textContent = evt.target.value;
   const currentEvent = eventTypeToOffersMap.get(evt.target.value);
   availableOffersContainer.innerHTML = getAvailableOffersMarkup(eventTypeToOffersMap, currentEvent);
+});
+
+// оживим фильтры (пока в main.js)
+const tripFilters = document.querySelectorAll('input');
+tripFilters.forEach((filter) => {
+  filter.addEventListener('change', (evt) => {
+    const buttonSelected = evt.target;
+    let filteredTripPoints;
+    if (buttonSelected.value === 'everything') {
+      removeAllChildNodes(tripEventsList);
+      render(tripEventsList, createTripPointListElement(createTripPointEditView(Array.from(tripPointsMocks.values())[0], eventTypeToOffersMap, destinations)), 'beforeend');
+      for (let i = 1; i < prettyMocks.length; i++) {
+        const [id, tripPointData] = prettyMocks[i];
+        render(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
+      }
+      return;
+    } else if (buttonSelected.value === 'past') {
+      filteredTripPoints = prettyMocks.filter(([,tripPoint]) => dayjs().diff(dayjs(tripPoint.endDate)) > 0);
+    } else if (buttonSelected.value === 'future') {
+      filteredTripPoints = prettyMocks.filter(([,tripPoint]) => dayjs().diff(dayjs(tripPoint.endDate)) < 0);
+    }
+
+    removeAllChildNodes(tripEventsList);
+    if (filteredTripPoints.length > 0) {
+      render(tripEventsList, createTripPointListElement(createTripPointEditView(filteredTripPoints[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
+    }
+    for (let i = 1; i < filteredTripPoints.length; i++) {
+      const [id, tripPointData] = filteredTripPoints[i];
+      render(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
+    }
+  });
 });
 
 // const eventRollUpButtons = document.querySelectorAll('.event__rollup-btn');
