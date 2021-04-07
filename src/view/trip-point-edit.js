@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { getEventTypesMarkup, getAvailableOffersMarkup } from '../util.js';
 
-const createTripPointEditionFormView = (allTripPointsData, currentTripPointData, eventTypeToOffersMap) => {
+const createTripPointEditView = (currentTripPointData, eventTypeToOffersMap, destinations) => {
   const {
     price: currentPrice,
     beginDate: currentBeginDate,
@@ -25,7 +25,7 @@ const createTripPointEditionFormView = (allTripPointsData, currentTripPointData,
         <div class="event__type-list">
           <fieldset class="event__type-group">
             <legend class="visually-hidden">Event type</legend>
-            ${getEventTypesMarkup(allTripPointsData, currentTripPointData).eventTypeItemsMarkup}
+            ${getEventTypesMarkup(eventTypeToOffersMap, destinations, currentTripPointData).eventTypeItemsMarkup}
           </fieldset>
         </div>
       </div>
@@ -36,7 +36,7 @@ const createTripPointEditionFormView = (allTripPointsData, currentTripPointData,
         </label>
         <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination.name}" list="destination-list-1">
         <datalist id="destination-list-1">
-          ${getEventTypesMarkup(allTripPointsData, currentTripPointData).destinationOptionsMarkup}
+          ${getEventTypesMarkup(eventTypeToOffersMap, destinations, currentTripPointData).destinationOptionsMarkup}
         </datalist>
       </div>
 
@@ -79,4 +79,4 @@ const createTripPointEditionFormView = (allTripPointsData, currentTripPointData,
   </form>`;
 };
 
-export { createTripPointEditionFormView };
+export { createTripPointEditView };

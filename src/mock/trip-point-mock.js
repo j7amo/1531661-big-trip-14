@@ -112,7 +112,6 @@ const generateOffers = () => {
 };
 
 // генерируем точки маршрута
-// НЕОБХОДИМО ПРАВИЛЬНО ИНТЕРПРЕТИРОВАТЬ СТРУКТУРЫ destinations И eventTypeToOffersMap
 const generateTripPoints = (numberOfTripPoints, destinations, eventTypeToOffersMap) => {
   const tripPoints = new Map();
   const uniqueIds = new Set();

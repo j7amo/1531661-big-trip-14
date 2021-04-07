@@ -24,13 +24,11 @@ const getFixedLengthArrayOfRandomElements = (array, elementsNumber) => {
   return randomElements;
 };
 
-const getEventTypesMarkup = (allTripPointsData, currentTripPoint) => {
+const getEventTypesMarkup = (eventTypeToOffersMap, destinationsMap, currentTripPoint) => {
   let destinationOptionsMarkup = '';
   let eventTypeItemsMarkup = '';
 
-  allTripPointsData.forEach(({destination, type}) => {
-    const destinationsTemplate = `<option value="${destination.name}"></option>`;
-    destinationOptionsMarkup += destinationsTemplate;
+  Array.from(eventTypeToOffersMap.keys()).forEach((type) => {
     let eventTypesTemplate = '';
     if (type === currentTripPoint.type) {
       eventTypesTemplate = `<div class="event__type-item">
@@ -44,6 +42,11 @@ const getEventTypesMarkup = (allTripPointsData, currentTripPoint) => {
       </div>`;
     }
     eventTypeItemsMarkup += eventTypesTemplate;
+  });
+
+  Array.from(destinationsMap.keys()).forEach((destination) => {
+    const destinationsTemplate = `<option value="${destination}"></option>`;
+    destinationOptionsMarkup += destinationsTemplate;
   });
 
   return {
