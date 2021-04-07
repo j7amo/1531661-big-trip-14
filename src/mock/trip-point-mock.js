@@ -128,15 +128,23 @@ const generateTripPoints = (numberOfTripPoints, destinations, eventTypeToOffersM
       i--;
       continue;
     }
+    const allOffers = eventTypeToOffersMap.get(type).offers;
+    const selectedOffers = getFixedLengthArrayOfRandomElements(allOffers, getRandomInt(0, allOffers.length));
+    const basePrice = getRandomInt(PRICE_MIN, PRICE_MAX);
+    let selectedOffersPrice = 0;
+    selectedOffers.forEach((offer) => {
+      selectedOffersPrice += Number(offer.price);
+    });
+
     tripPoints.set(
       id,
       {
-        price: getRandomInt(PRICE_MIN, PRICE_MAX),
+        price: Number(basePrice) + Number(selectedOffersPrice),
         beginDate: beginDate,
         endDate: endDate,
         destination: destinations.get(tripPointDestinations[i]),
         isFavorite: Boolean(getRandomInt()),
-        offers: eventTypeToOffersMap.get(type).offers,
+        offers: selectedOffers,
         type: type,
       });
   }
