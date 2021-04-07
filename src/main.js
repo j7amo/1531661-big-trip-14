@@ -36,10 +36,10 @@ render(tripEventsElement, createTripPointsListView(), 'beforeend');
 
 const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
 
-render(tripEventsList, createTripPointListElement(createTripPointEditView(Array.from(tripPointsMocks.values())[0], eventTypeToOffersMap, destinations)), 'beforeend');
 
 // рендерим моки
-const prettyMocks = Array.from(tripPointsMocks.entries());
+const prettyMocks = Array.from(tripPointsMocks.entries()).sort(([,firstTripPoint], [,secondTripPoint]) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
+render(tripEventsList, createTripPointListElement(createTripPointEditView(prettyMocks[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
 for (let i = 1; i < prettyMocks.length; i++) {
   const [id, tripPointData] = prettyMocks[i];
   render(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
@@ -55,8 +55,19 @@ eventsTypePicker.addEventListener('change', (evt) => {
   availableOffersContainer.innerHTML = getAvailableOffersMarkup(eventTypeToOffersMap, currentEvent);
 });
 
+const rerenderEventsList = (tripPointsToRender) => {
+  removeAllChildNodes(tripEventsList);
+  if (tripPointsToRender.length > 0) {
+    render(tripEventsList, createTripPointListElement(createTripPointEditView(tripPointsToRender[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
+  }
+  for (let i = 1; i < tripPointsToRender.length; i++) {
+    const [id, tripPointData] = tripPointsToRender[i];
+    render(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
+  }
+};
+
 // оживим фильтры (пока в main.js)
-const tripFilters = document.querySelectorAll('input');
+const tripFilters = document.querySelectorAll('.trip-filters input');
 tripFilters.forEach((filter) => {
   filter.addEventListener('change', (evt) => {
     const buttonSelected = evt.target;
@@ -77,15 +88,28 @@ tripFilters.forEach((filter) => {
         || (dayjs().diff(dayjs(tripPoint.beginDate)) > 0) && (dayjs().diff(dayjs(tripPoint.endDate)) < 0));
     }
 
-    removeAllChildNodes(tripEventsList);
-    if (filteredTripPoints.length > 0) {
-      render(tripEventsList, createTripPointListElement(createTripPointEditView(filteredTripPoints[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
-    }
-    for (let i = 1; i < filteredTripPoints.length; i++) {
-      const [id, tripPointData] = filteredTripPoints[i];
-      render(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
-    }
+    rerenderEventsList(filteredTripPoints);
   });
+});
+
+// оживим сортировку (пока в main.js)
+const tripSortByDayControl = document.querySelector('.trip-sort__item--day input');
+const tripSortByPriceControl = document.querySelector('.trip-sort__item--price input');
+const tripSortByDurationControl = document.querySelector('.trip-sort__item--time input');
+
+tripSortByDayControl.addEventListener('change', () => {
+  const sortedTripPoints = prettyMocks.sort(([,firstTripPoint], [,secondTripPoint]) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
+  rerenderEventsList(sortedTripPoints);
+});
+
+tripSortByPriceControl.addEventListener('change', () => {
+  const sortedTripPoints = prettyMocks.sort(([,firstTripPoint], [,secondTripPoint]) => secondTripPoint.price - firstTripPoint.price);
+  rerenderEventsList(sortedTripPoints);
+});
+
+tripSortByDurationControl.addEventListener('change', () => {
+  const sortedTripPoints = prettyMocks.sort(([,firstTripPoint], [,secondTripPoint]) => dayjs(firstTripPoint.beginDate).diff(dayjs(firstTripPoint.endDate)) - dayjs(secondTripPoint.beginDate).diff(dayjs(secondTripPoint.endDate)));
+  rerenderEventsList(sortedTripPoints);
 });
 
 // const eventRollUpButtons = document.querySelectorAll('.event__rollup-btn');
