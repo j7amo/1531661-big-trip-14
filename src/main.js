@@ -53,6 +53,64 @@ const setSelectedOffersToTripPriceDependency = () => {
   });
 };
 
+// оживим кнопки открытия / скрытия формы редактирования события
+// в основе моей идеи следующее: отследить в каком контейнере произошло событие, найти скрытый <span> с id точки поездки,
+// а дальше использовать этот id для передачи нужных данных в функции рендеринга
+// const initializeRollUpButtons = () => {
+//   const eventRollUpButtons = document.querySelectorAll('.event__rollup-btn');
+//   eventRollUpButtons.forEach((button) => {
+//     button.addEventListener('click', (evt) => {
+//       const eventContainer = evt.target.parentNode;
+//       if (eventContainer.nodeName.toLowerCase() === 'div') {
+//         const eventId = Number(eventContainer.querySelector('.event__id').textContent);
+//         const eventListElementContainer = eventContainer.parentNode;
+//         eventListElementContainer.removeChild(eventContainer);
+//         render(eventListElementContainer, createTripPointEditView(tripPointsMocks.get(eventId), eventTypeToOffersMap, destinations), 'beforeend');
+//         initializeSelectedOffers(eventId, tripPointsMocks);
+//         setSelectedOffersToTripPriceDependency();
+//         initializeEventTypePicker(eventId);
+//       } else if (eventContainer.nodeName.toLowerCase() === 'header') {
+//         const eventEditionFormContainer = eventContainer.parentNode;
+//         const eventId = Number(eventEditionFormContainer.querySelector('.event__edit-id').textContent);
+//         const eventListElementContainer = eventEditionFormContainer.parentNode;
+//         eventListElementContainer.removeChild(eventEditionFormContainer);
+//         render(eventListElementContainer, createTripPointView(eventId, tripPointsMocks.get(eventId)), 'beforeend');
+//       }
+//     });
+//   });
+// };
+
+// оживим кнопку открытия / скрытия формы редактирования события
+const initializeRollUpButton = (rollUpButton) => {
+  rollUpButton.addEventListener('click', (evt) => {
+    const eventContainer = evt.target.parentNode;
+    if (eventContainer.nodeName.toLowerCase() === 'div') {
+      const eventId = Number(eventContainer.querySelector('.event__id').textContent);
+      const eventListElementContainer = eventContainer.parentNode;
+      eventListElementContainer.removeChild(eventContainer);
+      render(eventListElementContainer, createTripPointEditView(tripPointsMocks.get(eventId), eventTypeToOffersMap, destinations), 'beforeend');
+      initializeSelectedOffers(eventId, tripPointsMocks);
+      setSelectedOffersToTripPriceDependency();
+      initializeEventTypePicker(eventId);
+      initializeRollUpButton(eventListElementContainer.querySelector('.event__rollup-btn'));
+    } else if (eventContainer.nodeName.toLowerCase() === 'header') {
+      const eventEditionFormContainer = eventContainer.parentNode;
+      const eventId = Number(eventEditionFormContainer.querySelector('.event__edit-id').textContent);
+      const eventListElementContainer = eventEditionFormContainer.parentNode;
+      eventListElementContainer.removeChild(eventEditionFormContainer);
+      render(eventListElementContainer, createTripPointView(eventId, tripPointsMocks.get(eventId)), 'beforeend');
+      initializeRollUpButton(eventListElementContainer.querySelector('.event__rollup-btn'));
+    }
+  });
+};
+
+const initializeRollUpButtons = () => {
+  const eventRollUpButtons = document.querySelectorAll('.event__rollup-btn');
+  eventRollUpButtons.forEach((button) => {
+    initializeRollUpButton(button);
+  });
+};
+
 // рендерим моки
 const prettyMocks = Array.from(tripPointsMocks.entries()).sort(([,firstTripPoint], [,secondTripPoint]) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
 render(tripEventsList, createTripPointListElement(createTripPointEditView(prettyMocks[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
@@ -62,6 +120,7 @@ for (let i = 1; i < prettyMocks.length; i++) {
   const [id, tripPointData] = prettyMocks[i];
   render(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
 }
+initializeRollUpButtons();
 
 // оживим выбор типа события
 const initializeEventTypePicker = (eventIdToEdit) => {
@@ -92,6 +151,7 @@ const rerenderEventsList = (tripPointsToRender) => {
     const [id, tripPointData] = tripPointsToRender[i];
     render(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
   }
+  initializeRollUpButtons();
 };
 
 initializeEventTypePicker(prettyMocks[0][1].id);
@@ -140,26 +200,3 @@ tripSortByDurationControl.addEventListener('change', () => {
   rerenderEventsList(sortedTripPoints);
   initializeEventTypePicker(sortedTripPoints[0][1]);
 });
-
-// ДАЛЕЕ В ПЛАНАХ:
-// 2) Открытие / скрытие формы редактирования точки (переключение между отображениями)
-
-// const eventRollUpButtons = document.querySelectorAll('.event__rollup-btn');
-//
-// eventRollUpButtons.forEach((button) => {
-//   button.addEventListener('click', (evt) => {
-//     const eventContainer = evt.target.parentNode;
-//     console.log(eventContainer.nodeName);
-//     if (eventContainer.nodeName.toLowerCase() === 'div') {
-//       //const eventId = eventContainer.querySelector('.event__id').textContent;
-//       const eventListElementContainer = eventContainer.parentNode;
-//       eventListElementContainer.removeChild(eventContainer);
-//       render(eventListElementContainer, createTripPointEditView(prettyMocks, prettyMocks[0], eventTypeToOffersMap),'beforeend');
-//     } else if (eventContainer.nodeName.toLowerCase() === 'header') {
-//       const eventEditionFormContainer = eventContainer.parentNode;
-//       const eventListElementContainer = eventEditionFormContainer.parentNode;
-//       eventListElementContainer.removeChild(eventEditionFormContainer);
-//       render(eventListElementContainer, createTripPointEditView(prettyMocks, prettyMocks[0], eventTypeToOffersMap),'beforeend');
-//     }
-//   });
-// });
