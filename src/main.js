@@ -36,10 +36,27 @@ render(tripEventsElement, createTripPointsListView(), 'beforeend');
 
 const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
 
+// свяжем взаимодействие чекбоксов-опций с общей стоимостью поездки
+const setSelectedOffersToTripPriceDependency = () => {
+  const availableOffers = document.querySelectorAll('.event__offer-selector');
+  const tripPrice = document.querySelector('.event__input--price');
+  availableOffers.forEach((availableOffer) => {
+    const availableOfferCheckbox = availableOffer.querySelector('input');
+    const availableOfferPrice = availableOffer.querySelector('.event__offer-price').textContent;
+    availableOfferCheckbox.addEventListener('change', () => {
+      if (availableOfferCheckbox.checked) {
+        tripPrice.value = Number(tripPrice.value) + Number(availableOfferPrice);
+      } else {
+        tripPrice.value = Number(tripPrice.value) - Number(availableOfferPrice);
+      }
+    });
+  });
+};
 
 // рендерим моки
 const prettyMocks = Array.from(tripPointsMocks.entries()).sort(([,firstTripPoint], [,secondTripPoint]) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
 render(tripEventsList, createTripPointListElement(createTripPointEditView(prettyMocks[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
+setSelectedOffersToTripPriceDependency();
 initializeSelectedOffers(prettyMocks[0][1].id, tripPointsMocks);
 for (let i = 1; i < prettyMocks.length; i++) {
   const [id, tripPointData] = prettyMocks[i];
@@ -57,8 +74,10 @@ const initializeEventTypePicker = (eventIdToEdit) => {
     const currentEvent = eventTypeToOffersMap.get(evt.target.value);
     availableOffersContainer.innerHTML = getAvailableOffersMarkup(eventTypeToOffersMap, currentEvent.type);
     initializeSelectedOffers(eventIdToEdit, tripPointsMocks);
+    setSelectedOffersToTripPriceDependency();
   });
 };
+
 
 // вынесем в отдельную функцию повторный рендеринг событий
 const rerenderEventsList = (tripPointsToRender) => {
@@ -66,6 +85,7 @@ const rerenderEventsList = (tripPointsToRender) => {
   if (tripPointsToRender.length > 0) {
     render(tripEventsList, createTripPointListElement(createTripPointEditView(tripPointsToRender[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
     initializeSelectedOffers(tripPointsToRender[0][1].id, tripPointsMocks);
+    setSelectedOffersToTripPriceDependency();
     initializeEventTypePicker(tripPointsToRender[0][1].id);
   }
   for (let i = 1; i < tripPointsToRender.length; i++) {
