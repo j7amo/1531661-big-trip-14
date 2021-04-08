@@ -5,7 +5,7 @@ import { createFiltersView } from './view/filters.js';
 import { createSortView } from './view/sort.js';
 import { createTripPointsListView } from './view/trip-points-list.js';
 import { createTripPointEditView } from './view/trip-point-edit.js';
-import { createTripPointCreationFormTemplate } from './view/trip-point-add.js';
+//import { createTripPointCreationFormTemplate } from './view/trip-point-add.js';
 import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
 import { createTripPointView } from './view/trip-point.js';
 import { getAvailableOffersMarkup, createTripPointListElement, removeAllChildNodes, initializeSelectedOffers } from './util.js';

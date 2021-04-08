@@ -1,7 +1,7 @@
-import dayjs from 'dayjs';
-import { getEventTypesMarkup, getAvailableOffersMarkup } from '../util.js';
+// import dayjs from 'dayjs';
+import { getEventTypesMarkup } from '../util.js';
 
-const createTripPointCreationFormTemplate = (eventTypeToOffersMap, destinations) => {
+const createTripPointCreationFormTemplate = (allTripPointsData) => {
   return `<form class="event event--edit" action="#" method="post">
     <header class="event__header">
       <div class="event__type-wrapper">
