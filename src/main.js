@@ -5,6 +5,7 @@ import { createFiltersView } from './view/filters.js';
 import { createSortView } from './view/sort.js';
 import { createTripPointsListView } from './view/trip-points-list.js';
 import { createTripPointEditView } from './view/trip-point-edit.js';
+import { createTripPointCreationFormTemplate } from './view/trip-point-add.js';
 import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
 import { createTripPointView } from './view/trip-point.js';
 import { getAvailableOffersMarkup, createTripPointListElement, removeAllChildNodes, initializeSelectedOffers } from './util.js';
@@ -183,3 +184,9 @@ tripSortByDurationControl.addEventListener('change', () => {
   rerenderEventsList(sortedTripPoints);
   initializeEventTypePicker(sortedTripPoints[0][1]);
 });
+
+// // оживим кнопку добавления новой точки маршрута
+// const newEventButton = document.querySelector('.trip-main__event-add-btn');
+// newEventButton.addEventListener('click', () => {
+//   createTripPointCreationFormTemplate();
+// });
