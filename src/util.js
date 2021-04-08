@@ -29,7 +29,7 @@ const getEventTypesMarkup = (eventTypeToOffersMap, destinationsMap, currentTripP
   let eventTypeItemsMarkup = '';
 
   Array.from(eventTypeToOffersMap.keys()).forEach((type) => {
-    let eventTypesTemplate = '';
+    let eventTypesTemplate;
     if (type === currentTripPoint.type) {
       eventTypesTemplate = `<div class="event__type-item">
       <input id="event-type-${type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}" checked>
@@ -55,19 +55,19 @@ const getEventTypesMarkup = (eventTypeToOffersMap, destinationsMap, currentTripP
   };
 };
 
-const getAvailableOffersMarkup = (eventTypeToOffersMap, currentTripPoint) => {
-  const {
-    offers: selectedOffers,
-    type: currentType,
-  } = currentTripPoint;
+const getAvailableOffersMarkup = (eventTypeToOffersMap, currentEventType/*currentTripPoint*/) => {
+  // const {
+  //   offers: selectedOffers,
+  //   type: currentType,
+  // } = currentTripPoint;
 
   let availableOffersOptionsMarkup = '';
-  const availableOffers = eventTypeToOffersMap.get(currentType).offers;
+  const availableOffers = eventTypeToOffersMap.get(currentEventType).offers;
   for (let i = 0; i < availableOffers.length; i++) {
     const randomId = getRandomInt(0, Number.MAX_VALUE);
-    const checkboxChecked = selectedOffers.includes(availableOffers[i]) ? 'checked' : '';
+    //const checkboxChecked = selectedOffers.includes(availableOffers[i]) ? 'checked' : '';
     const offerTemplate = `<div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${currentType}" ${checkboxChecked}>
+      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${currentEventType}">
       <label class="event__offer-label" for="event-offer-${randomId}-1">
         <span class="event__offer-title">${availableOffers[i].title}</span>
         &plus;&euro;&nbsp;
@@ -81,6 +81,21 @@ const getAvailableOffersMarkup = (eventTypeToOffersMap, currentTripPoint) => {
   return availableOffersOptionsMarkup;
 };
 
+const initializeSelectedOffers = (tripPointId, allTripPointsData) => {
+  const selectedOffers = allTripPointsData.get(tripPointId).offers;
+  const availableOffers = document.querySelectorAll('.event__offer-selector');
+  availableOffers.forEach((availableOffer) => {
+    const availableOfferCheckbox = availableOffer.querySelector('input');
+    const availableOfferTitle = availableOffer.querySelector('.event__offer-title').textContent;
+    const availableOfferPrice = availableOffer.querySelector('.event__offer-price').textContent;
+    for (let i = 0; i < selectedOffers.length; i++) {
+      if (selectedOffers[i].title === availableOfferTitle && selectedOffers[i].price === Number(availableOfferPrice)) {
+        availableOfferCheckbox.checked = true;
+      }
+    }
+  });
+};
+
 const createTripPointListElement = (internalElementMarkup) => {
   return `<li class="trip-events__item">${internalElementMarkup}</li>`;
 };
@@ -91,4 +106,4 @@ const removeAllChildNodes = (parentNode) => {
   }
 };
 
-export { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements, getEventTypesMarkup, getAvailableOffersMarkup, createTripPointListElement, removeAllChildNodes };
+export { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements, getEventTypesMarkup, getAvailableOffersMarkup, createTripPointListElement, removeAllChildNodes, initializeSelectedOffers };

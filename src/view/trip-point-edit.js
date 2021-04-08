@@ -7,6 +7,7 @@ const createTripPointEditView = (currentTripPointData, eventTypeToOffersMap, des
     beginDate: currentBeginDate,
     endDate: currentEndDate,
     destination: currentDestination,
+    id: currentId,
     type: currentType,
   } = currentTripPointData;
 
@@ -14,6 +15,7 @@ const createTripPointEditView = (currentTripPointData, eventTypeToOffersMap, des
   const endDateWithTimeFormatted = dayjs(currentEndDate).format('DD/MM/YY HH:mm');
 
   return `<form class="event event--edit" action="#" method="post">
+    <span class="event__edit-id visually-hidden">${currentId}</span>
     <header class="event__header">
       <div class="event__type-wrapper">
         <label class="event__type  event__type-btn" for="event-type-edit-toggle-1">
@@ -67,7 +69,7 @@ const createTripPointEditView = (currentTripPointData, eventTypeToOffersMap, des
         <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
         <div class="event__available-offers">
-          ${getAvailableOffersMarkup(eventTypeToOffersMap, currentTripPointData)}
+          ${getAvailableOffersMarkup(eventTypeToOffersMap, currentType)}
         </div>
       </section>
 

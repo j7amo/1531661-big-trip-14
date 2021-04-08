@@ -141,6 +141,7 @@ const generateTripPoints = (numberOfTripPoints, destinations, eventTypeToOffersM
         beginDate: beginDate,
         endDate: endDate,
         destination: destinations.get(tripPointDestinations[i]),
+        id: id,
         isFavorite: Boolean(getRandomInt()),
         offers: selectedOffers,
         type: type,
