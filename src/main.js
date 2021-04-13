@@ -1,15 +1,21 @@
-import { createTripInfoView } from './view/trip-info.js';
-import { createTripCostView } from './view/trip-cost.js';
-import { createSiteMenuView } from './view/site-menu';
-import { createFiltersView } from './view/filters.js';
-import { createSortView } from './view/sort.js';
-import { createTripPointsListView } from './view/trip-points-list.js';
-import { createTripPointEditView } from './view/trip-point-edit.js';
-//import { createTripPointCreationFormTemplate } from './view/trip-point-add.js';
-import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
-import { createTripPointView } from './view/trip-point.js';
-import { getAvailableOffersMarkup, createTripPointListElement, removeAllChildNodes, initializeSelectedOffers, renderTemplate } from './util.js';
 import dayjs from 'dayjs';
+import TripInfoView from './view/trip-info.js';
+import TripCostView from './view/trip-cost.js';
+import SiteMenuView from './view/site-menu';
+import FiltersView from './view/filters.js';
+import SortView from './view/sort.js';
+import TripPointsListView from './view/trip-points-list.js';
+import TripPointEditFormView from './view/trip-point-edit.js';
+import TripPointAddFormView from './view/trip-point-add.js';
+import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
+import TripPointView from './view/trip-point.js';
+import {
+  getAvailableOffersMarkup,
+  removeAllChildNodes,
+  initializeSelectedOffers,
+  renderElement,
+  RenderPosition
+} from './util.js';
 
 const EVENT_COUNT = 10;
 
@@ -24,12 +30,12 @@ const destinations = generateDestinations();
 const eventTypeToOffersMap = generateOffers();
 const tripPointsMocks = generateTripPoints(EVENT_COUNT, destinations, eventTypeToOffersMap);
 
-renderTemplate(tripInfoElement, createTripInfoView(tripPointsMocks), 'beforeend');
-renderTemplate(tripInfoElement, createTripCostView(tripPointsMocks), 'beforeend');
-renderTemplate(tripControlsNavigationElement, createSiteMenuView(), 'beforeend');
-renderTemplate(tripFiltersElement, createFiltersView(), 'beforeend');
-renderTemplate(tripEventsElement, createSortView(), 'beforeend');
-renderTemplate(tripEventsElement, createTripPointsListView(), 'beforeend');
+renderElement(tripInfoElement, new TripInfoView(tripPointsMocks).getElement(), RenderPosition.BEFOREEND);
+renderElement(tripInfoElement, new TripCostView(tripPointsMocks).getElement(), RenderPosition.BEFOREEND);
+renderElement(tripControlsNavigationElement, new SiteMenuView().getElement(), RenderPosition.BEFOREEND);
+renderElement(tripFiltersElement, new FiltersView().getElement(), RenderPosition.BEFOREEND);
+renderElement(tripEventsElement, new SortView().getElement(), RenderPosition.BEFOREEND);
+renderElement(tripEventsElement, new TripPointsListView().getElement(), RenderPosition.BEFOREEND);
 
 const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
 
@@ -62,13 +68,13 @@ const initializeRollUpButton = (rollUpButton) => {
         const eventId = Number(alreadyOpenedForm.querySelector('.event__edit-id').textContent);
         const eventListElementContainer = alreadyOpenedForm.parentNode;
         eventListElementContainer.removeChild(alreadyOpenedForm);
-        renderTemplate(eventListElementContainer, createTripPointView(eventId, tripPointsMocks.get(eventId)), 'beforeend');
+        renderElement(eventListElementContainer, new TripPointView(eventId, tripPointsMocks.get(eventId)).getElement(), RenderPosition.BEFOREEND);
         initializeRollUpButton(eventListElementContainer.querySelector('.event__rollup-btn'));
       }
       const eventId = Number(eventContainer.querySelector('.event__id').textContent);
       const eventListElementContainer = eventContainer.parentNode;
       eventListElementContainer.removeChild(eventContainer);
-      renderTemplate(eventListElementContainer, createTripPointEditView(tripPointsMocks.get(eventId), eventTypeToOffersMap, destinations), 'beforeend');
+      renderElement(eventListElementContainer, new TripPointEditFormView(tripPointsMocks.get(eventId), eventTypeToOffersMap, destinations).getElement(), RenderPosition.BEFOREEND);
       initializeSelectedOffers(eventId, tripPointsMocks);
       setSelectedOffersToTripPriceDependency();
       initializeEventTypePicker(eventId);
@@ -78,7 +84,7 @@ const initializeRollUpButton = (rollUpButton) => {
       const eventId = Number(eventEditionFormContainer.querySelector('.event__edit-id').textContent);
       const eventListElementContainer = eventEditionFormContainer.parentNode;
       eventListElementContainer.removeChild(eventEditionFormContainer);
-      renderTemplate(eventListElementContainer, createTripPointView(eventId, tripPointsMocks.get(eventId)), 'beforeend');
+      renderElement(eventListElementContainer, new TripPointView(eventId, tripPointsMocks.get(eventId)), RenderPosition.BEFOREEND);
       initializeRollUpButton(eventListElementContainer.querySelector('.event__rollup-btn'));
     }
   });
@@ -93,12 +99,12 @@ const initializeRollUpButtons = () => {
 
 // рендерим моки
 const prettyMocks = Array.from(tripPointsMocks.entries()).sort(([,firstTripPoint], [,secondTripPoint]) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
-renderTemplate(tripEventsList, createTripPointListElement(createTripPointEditView(prettyMocks[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
+renderElement(tripEventsList, new TripPointEditFormView(prettyMocks[0][1], eventTypeToOffersMap, destinations).getElement(), RenderPosition.BEFOREEND);
 setSelectedOffersToTripPriceDependency();
 initializeSelectedOffers(prettyMocks[0][1].id, tripPointsMocks);
 for (let i = 1; i < prettyMocks.length; i++) {
   const [id, tripPointData] = prettyMocks[i];
-  renderTemplate(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
+  renderElement(tripEventsList, new TripPointView(id, tripPointData).getElement(), RenderPosition.BEFOREEND);
 }
 initializeRollUpButtons();
 
@@ -122,14 +128,14 @@ const initializeEventTypePicker = (eventIdToEdit) => {
 const rerenderEventsList = (tripPointsToRender) => {
   removeAllChildNodes(tripEventsList);
   if (tripPointsToRender.length > 0) {
-    renderTemplate(tripEventsList, createTripPointListElement(createTripPointEditView(tripPointsToRender[0][1], eventTypeToOffersMap, destinations)), 'beforeend');
+    renderElement(tripEventsList, new TripPointEditFormView(tripPointsToRender[0][1], eventTypeToOffersMap, destinations).getElement(), RenderPosition.BEFOREEND);
     initializeSelectedOffers(tripPointsToRender[0][1].id, tripPointsMocks);
     setSelectedOffersToTripPriceDependency();
     initializeEventTypePicker(tripPointsToRender[0][1].id);
   }
   for (let i = 1; i < tripPointsToRender.length; i++) {
     const [id, tripPointData] = tripPointsToRender[i];
-    renderTemplate(tripEventsList, createTripPointListElement(createTripPointView(id, tripPointData)), 'beforeend');
+    renderElement(tripEventsList, new TripPointView(id, tripPointData).getElement(), RenderPosition.BEFOREEND);
   }
   initializeRollUpButtons();
 };

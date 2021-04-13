@@ -17,12 +17,6 @@ const renderElement = (container, element, place) => {
   }
 };
 
-// перенесём из main.js метод для отрисовки элемента с помощью insertAdjacentHTML и переименуем в renderTemplate,
-// так как мы отрисовываем именно шаблон
-const renderTemplate = (container, template, place) => {
-  container.insertAdjacentHTML(place, template);
-};
-
 // напишем функцию для создания DOM-элемента (это уже не просто разметка в виде строки, а именно DOM-объект)
 // функция будет получать шаблон (разметку) и оборачивать его, например, в div (данный подход давался на лекциях)
 // а в конечном счёте мы будем возвращать наружу ТОЛЬКО САМ элемент БЕЗ div-обёртки - это нужно для того, чтобы избежать
@@ -132,10 +126,6 @@ const initializeSelectedOffers = (tripPointId, allTripPointsData) => {
   });
 };
 
-const createTripPointListElement = (internalElementMarkup) => {
-  return `<li class="trip-events__item">${internalElementMarkup}</li>`;
-};
-
 const removeAllChildNodes = (parentNode) => {
   while (parentNode.firstChild) {
     parentNode.removeChild(parentNode.lastChild);
@@ -148,8 +138,9 @@ export {
   getFixedLengthArrayOfRandomElements,
   getEventTypesMarkup,
   getAvailableOffersMarkup,
-  createTripPointListElement,
   removeAllChildNodes,
   initializeSelectedOffers,
-  renderTemplate
+  createNewElement,
+  renderElement,
+  RenderPosition
 };
