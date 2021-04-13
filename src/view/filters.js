@@ -1,4 +1,6 @@
-const createFiltersView = () => {
+import { createNewElement } from '../util.js';
+
+const createFiltersTemplate = () => {
   return `<form class="trip-filters" action="#" method="get">
     <div class="trip-filters__filter">
       <input id="filter-everything" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="everything" checked>
@@ -19,4 +21,25 @@ const createFiltersView = () => {
   </form>`;
 };
 
-export { createFiltersView };
+// по аналогии с site-menu.js производим "перевод на классы"
+export default class FiltersView {
+  constructor() {
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createFiltersTemplate();
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createNewElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

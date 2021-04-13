@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { createNewElement } from '../util.js';
 
 const getEndDateCorrectViewFormat = (beginDate, sortedTripPoints) => {
   return dayjs(beginDate).month() === dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).month()
@@ -6,7 +7,7 @@ const getEndDateCorrectViewFormat = (beginDate, sortedTripPoints) => {
     : dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).format('MMM DD');
 };
 
-const createTripInfoView = (allTripPointsData = '') => {
+const createTripInfoTemplate = (allTripPointsData = '') => {
   if (allTripPointsData === '') {
     return;
   }
@@ -36,4 +37,26 @@ const createTripInfoView = (allTripPointsData = '') => {
   }
 };
 
-export { createTripInfoView };
+// по аналогии с site-menu.js производим "перевод на классы"
+export default class TripInfoView {
+  constructor(allTripPointsData) {
+    this._element = null;
+    this._allTripPointsData = allTripPointsData;
+  }
+
+  getTemplate() {
+    return createTripInfoTemplate(this._allTripPointsData);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createNewElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

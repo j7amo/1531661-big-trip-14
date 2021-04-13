@@ -1,10 +1,11 @@
 import dayjs from 'dayjs';
+import { createNewElement } from '../util.js';
 
 const MINUTES_IN_DAY = 1440;
 const MINUTES_IN_HOUR = 60;
 const MAX_NUMBER_WITH_LEADING_ZERO = 9;
 
-const createTripPointView = (id, tripPointData) => {
+const createTripPointTemplate = (id, tripPointData) => {
   const {
     price,
     beginDate,
@@ -57,36 +58,61 @@ const createTripPointView = (id, tripPointData) => {
 
   const isFavoriteClass = isFavorite ? 'event__favorite-btn--active' : '';
 
-  return `<div class="event">
-    <span class="event__id visually-hidden">${id}</span>
-    <time class="event__date" datetime="${beginDateYearMonthDayFormatted}">${beginDateMonthDayFormatted}</time>
-    <div class="event__type">
-      <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
-    </div>
-    <h3 class="event__title">${type} ${destination.name}</h3>
-    <div class="event__schedule">
-      <p class="event__time">
-        <time class="event__start-time" datetime="${beginFullDateWithTimeFormatted}">${beginDateTimeFormatted}</time>
-        &mdash;
-        <time class="event__end-time" datetime="${endFullDateWithTimeFormatted}">${endDateTimeFormatted}</time>
+  return `<li class="trip-events__item">
+    <div class="event">
+      <span class="event__id visually-hidden">${id}</span>
+      <time class="event__date" datetime="${beginDateYearMonthDayFormatted}">${beginDateMonthDayFormatted}</time>
+      <div class="event__type">
+        <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
+      </div>
+      <h3 class="event__title">${type} ${destination.name}</h3>
+      <div class="event__schedule">
+        <p class="event__time">
+          <time class="event__start-time" datetime="${beginFullDateWithTimeFormatted}">${beginDateTimeFormatted}</time>
+          &mdash;
+          <time class="event__end-time" datetime="${endFullDateWithTimeFormatted}">${endDateTimeFormatted}</time>
+        </p>
+        <p class="event__duration">${eventDurationFormatted}</p>
+      </div>
+      <p class="event__price">
+        &euro;&nbsp;<span class="event__price-value">${price}</span>
       </p>
-      <p class="event__duration">${eventDurationFormatted}</p>
+      <h4 class="visually-hidden">Offers:</h4>
+      <ul class="event__selected-offers">${listOfOffers}</ul>
+      <button class="event__favorite-btn ${isFavoriteClass}" type="button">
+        <span class="visually-hidden">Add to favorite</span>
+        <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
+          <path d="M14 21l-8.22899 4.3262 1.57159-9.1631L.685209 9.67376 9.8855 8.33688 14 0l4.1145 8.33688 9.2003 1.33688-6.6574 6.48934 1.5716 9.1631L14 21z"/>
+        </svg>
+      </button>
+      <button class="event__rollup-btn" type="button">
+        <span class="visually-hidden">Open event</span>
+      </button>
     </div>
-    <p class="event__price">
-      &euro;&nbsp;<span class="event__price-value">${price}</span>
-    </p>
-    <h4 class="visually-hidden">Offers:</h4>
-    <ul class="event__selected-offers">${listOfOffers}</ul>
-    <button class="event__favorite-btn ${isFavoriteClass}" type="button">
-      <span class="visually-hidden">Add to favorite</span>
-      <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">
-        <path d="M14 21l-8.22899 4.3262 1.57159-9.1631L.685209 9.67376 9.8855 8.33688 14 0l4.1145 8.33688 9.2003 1.33688-6.6574 6.48934 1.5716 9.1631L14 21z"/>
-      </svg>
-    </button>
-    <button class="event__rollup-btn" type="button">
-      <span class="visually-hidden">Open event</span>
-    </button>
-  </div>`;
+  </li>`;
 };
 
-export { createTripPointView };
+// по аналогии с site-menu.js производим "перевод на классы"
+export default class TripPointView {
+  constructor(id, tripPointData) {
+    this._element = null;
+    this._id = id;
+    this._tripPointData = tripPointData;
+  }
+
+  getTemplate() {
+    return createTripPointTemplate(this._id, this._tripPointData);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createNewElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

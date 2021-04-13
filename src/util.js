@@ -1,3 +1,33 @@
+// заведём перечисление для констант, которые используются при отрисовке с помощью insertAdjacentHTML
+const RenderPosition = {
+  AFTERBEGIN: 'afterbegin',
+  BEFOREEND: 'beforeend',
+};
+
+// опишем функцию рендеринга DOM-элемента
+// эта функцию впоследствии станет основной функцией для рендеринга элементов на странице в принципе
+const renderElement = (container, element, place) => {
+  switch (place) {
+    case RenderPosition.AFTERBEGIN:
+      container.prepend(element);
+      break;
+    case RenderPosition.BEFOREEND:
+      container.append(element);
+      break;
+  }
+};
+
+// напишем функцию для создания DOM-элемента (это уже не просто разметка в виде строки, а именно DOM-объект)
+// функция будет получать шаблон (разметку) и оборачивать его, например, в div (данный подход давался на лекциях)
+// а в конечном счёте мы будем возвращать наружу ТОЛЬКО САМ элемент БЕЗ div-обёртки - это нужно для того, чтобы избежать
+// "лишней" блочности div-а
+const createNewElement = (template) => {
+  const newElement = document.createElement('div');
+  newElement.innerHTML = template;
+
+  return newElement.firstChild;
+};
+
 const getRandomInt = (rangeStart = 0, rangeEnd = 1) => {
 
   if (rangeEnd <= rangeStart) {
@@ -96,14 +126,21 @@ const initializeSelectedOffers = (tripPointId, allTripPointsData) => {
   });
 };
 
-const createTripPointListElement = (internalElementMarkup) => {
-  return `<li class="trip-events__item">${internalElementMarkup}</li>`;
-};
-
 const removeAllChildNodes = (parentNode) => {
   while (parentNode.firstChild) {
     parentNode.removeChild(parentNode.lastChild);
   }
 };
 
-export { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements, getEventTypesMarkup, getAvailableOffersMarkup, createTripPointListElement, removeAllChildNodes, initializeSelectedOffers };
+export {
+  getRandomInt,
+  getRandomElement,
+  getFixedLengthArrayOfRandomElements,
+  getEventTypesMarkup,
+  getAvailableOffersMarkup,
+  removeAllChildNodes,
+  initializeSelectedOffers,
+  createNewElement,
+  renderElement,
+  RenderPosition
+};
