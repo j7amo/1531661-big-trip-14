@@ -122,12 +122,13 @@ const createTripPointCreationFormTemplate = (allTripPointsData) => {
 
 // по аналогии с site-menu.js производим "перевод на классы"
 export default class TripPointAddFormView {
-  constructor() {
+  constructor(allTripPointsData) {
     this._element = null;
+    this._allTripPointsData = allTripPointsData;
   }
 
   getTemplate() {
-    return createTripPointCreationFormTemplate();
+    return createTripPointCreationFormTemplate(this._allTripPointsData);
   }
 
   getElement() {
