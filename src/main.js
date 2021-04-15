@@ -14,7 +14,8 @@ import {
   //getAvailableOffersMarkup,
   //removeAllChildNodes,
   //initializeSelectedOffers,
-  renderElement,
+  render,
+  replace,
   RenderPosition
 } from './utils/render.js';
 
@@ -31,12 +32,12 @@ const destinations = generateDestinations();
 const eventTypeToOffersMap = generateOffers();
 const tripPointsMocks = generateTripPoints(EVENT_COUNT, destinations, eventTypeToOffersMap);
 
-renderElement(tripInfoElement, new TripInfoView(tripPointsMocks).getElement(), RenderPosition.BEFOREEND);
-renderElement(tripInfoElement, new TripCostView(tripPointsMocks).getElement(), RenderPosition.BEFOREEND);
-renderElement(tripControlsNavigationElement, new SiteMenuView().getElement(), RenderPosition.BEFOREEND);
-renderElement(tripFiltersElement, new FiltersView().getElement(), RenderPosition.BEFOREEND);
-renderElement(tripEventsElement, new SortView().getElement(), RenderPosition.BEFOREEND);
-renderElement(tripEventsElement, new TripPointsListView().getElement(), RenderPosition.BEFOREEND);
+render(tripInfoElement, new TripInfoView(tripPointsMocks), RenderPosition.BEFOREEND);
+render(tripInfoElement, new TripCostView(tripPointsMocks), RenderPosition.BEFOREEND);
+render(tripControlsNavigationElement, new SiteMenuView(), RenderPosition.BEFOREEND);
+render(tripFiltersElement, new FiltersView(), RenderPosition.BEFOREEND);
+render(tripEventsElement, new SortView(), RenderPosition.BEFOREEND);
+render(tripEventsElement, new TripPointsListView(), RenderPosition.BEFOREEND);
 
 const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
 
@@ -53,11 +54,11 @@ const renderTripPoint = (tripPointsList, id, tripPoint) => {
   const tripPointEditForm = new TripPointEditFormView(tripPoint, eventTypeToOffersMap, destinations);
 
   const switchFromCardToForm = () => {
-    tripPointsList.replaceChild(tripPointEditForm.getElement(), tripPointCard.getElement());
+    replace(tripPointEditForm, tripPointCard);
   };
 
   const switchFromFormToCard = () => {
-    tripPointsList.replaceChild(tripPointCard.getElement(), tripPointEditForm.getElement());
+    replace(tripPointCard, tripPointEditForm);
   };
 
   // подпишемся на нажатие Escape, когда пункт маршрута в представлении формы редактирования
@@ -87,7 +88,7 @@ const renderTripPoint = (tripPointsList, id, tripPoint) => {
     document.removeEventListener('keydown', onEscKeyDown);
   });
 
-  renderElement(tripPointsList, tripPointCard.getElement(), RenderPosition.BEFOREEND);
+  render(tripPointsList, tripPointCard.getElement(), RenderPosition.BEFOREEND);
 };
 
 // рендерим моки

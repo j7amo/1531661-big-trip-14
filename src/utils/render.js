@@ -1,22 +1,70 @@
 // функции, связанные с рендерингом
 import { getRandomInt } from './common.js';
+import Abstract from '../view/abstract.js';
 // заведём перечисление для констант, которые используются при отрисовке с помощью insertAdjacentHTML
 const RenderPosition = {
   AFTERBEGIN: 'afterbegin',
   BEFOREEND: 'beforeend',
 };
 
-// опишем функцию рендеринга DOM-элемента
-// эта функцию впоследствии станет основной функцией для рендеринга элементов на странице в принципе
-const renderElement = (container, element, place) => {
+// изменим функцию renderElement
+// Основные нововведения:
+// 1) теперь называется render
+// 2) теперь ей всё равно, что придёт в качестве аргументов: DOM-элементы или экземпляры класса-представления (речь
+// конечно же о первых двух аргументах)
+const render = (container, child, place) => {
+  if (container instanceof Abstract) {
+    container = container.getElement();
+  }
+
+  if (child instanceof Abstract) {
+    child = child.getElement();
+  }
+
   switch (place) {
     case RenderPosition.AFTERBEGIN:
-      container.prepend(element);
+      container.prepend(child);
       break;
     case RenderPosition.BEFOREEND:
-      container.append(element);
+      container.append(child);
       break;
   }
+};
+
+// по аналогии (частичной) с методом render заведём метод replace, который будет обёрткой надо встроенным в ЖабаСкрипт
+// методом replaceChild. Делаем мы это за тем, чтобы:
+// 1) точка входа (main.js) стала ещё чище и кода в ней стало ещё меньше.
+// 2) мы могли бы опять же использовать метод как с DOM-элементами, так и с экземплярами класса-представления
+// Примечание: сохраним порядок аргументов метода-обёртки (декоратора) таким же как и у оригинального системного метода,
+// чтобы потребители данного кода, знакомые с оригинальным методом, не путались в порядке передачи аргументов
+const replace = (newChild, oldChild) => {
+  if (newChild instanceof Abstract) {
+    newChild = newChild.getElement();
+  }
+
+  if (oldChild instanceof Abstract) {
+    oldChild = oldChild.getElement();
+  }
+
+  const parent = oldChild.parentElement;
+
+  if (parent === null || newChild === null) {
+    throw new Error('Can\'t replace nonexistent elements');
+  }
+
+  parent.replaceChild(newChild, oldChild);
+};
+
+// также заведём метод remove, который будет полностью (и DOM-элемент, и связанный с ним экземпляр класса) удалять компоненты
+const remove = (component) => {
+  if (!(component instanceof Abstract)) {
+    throw new Error('Can only remove components!');
+  }
+  // здесь возникает путаница с неймингом: со стороны может показаться, что мы рекурсивно вызываем только что объявленный
+  // метод remove, но интерпретатор понимает, что мы вызываем метод на узле (node) и определяет,
+  // что речь идёт о встроенном методе
+  component.getElement().remove();
+  component.removeElement();
 };
 
 // напишем функцию для создания DOM-элемента (это уже не просто разметка в виде строки, а именно DOM-объект)
@@ -114,6 +162,8 @@ export {
   removeAllChildNodes,
   initializeSelectedOffers,
   createNewElement,
-  renderElement,
+  render,
+  replace,
+  remove,
   RenderPosition
 };
