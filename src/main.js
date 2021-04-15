@@ -16,7 +16,7 @@ import {
   //initializeSelectedOffers,
   renderElement,
   RenderPosition
-} from './util.js';
+} from './utils/render.js';
 
 const EVENT_COUNT = 10;
 

@@ -1,3 +1,5 @@
+// функции, связанные с рендерингом
+import { getRandomInt } from './common.js';
 // заведём перечисление для констант, которые используются при отрисовке с помощью insertAdjacentHTML
 const RenderPosition = {
   AFTERBEGIN: 'afterbegin',
@@ -28,30 +30,10 @@ const createNewElement = (template) => {
   return newElement.firstChild;
 };
 
-const getRandomInt = (rangeStart = 0, rangeEnd = 1) => {
-
-  if (rangeEnd <= rangeStart) {
-    return rangeStart;
+const removeAllChildNodes = (parentNode) => {
+  while (parentNode.firstChild) {
+    parentNode.removeChild(parentNode.lastChild);
   }
-
-  return Number(rangeStart) + Math.round(Math.random() * (rangeEnd - rangeStart));
-};
-
-const getRandomElement = (array) => {
-  return array[getRandomInt(0, array.length - 1)];
-};
-
-const getFixedLengthArrayOfRandomElements = (array, elementsNumber) => {
-  const randomElements = [];
-
-  while(randomElements.length < elementsNumber) {
-    const randomElement = getRandomElement(array);
-
-    if (!randomElements.includes(randomElement)) {
-      randomElements.push(randomElement);
-    }
-  }
-  return randomElements;
 };
 
 const getEventTypesMarkup = (eventTypeToOffersMap, destinationsMap, currentTripPoint) => {
@@ -126,16 +108,7 @@ const initializeSelectedOffers = (tripPointId, allTripPointsData) => {
   });
 };
 
-const removeAllChildNodes = (parentNode) => {
-  while (parentNode.firstChild) {
-    parentNode.removeChild(parentNode.lastChild);
-  }
-};
-
 export {
-  getRandomInt,
-  getRandomElement,
-  getFixedLengthArrayOfRandomElements,
   getEventTypesMarkup,
   getAvailableOffersMarkup,
   removeAllChildNodes,

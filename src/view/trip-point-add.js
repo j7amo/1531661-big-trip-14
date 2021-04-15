@@ -1,5 +1,5 @@
 // import dayjs from 'dayjs';
-import { getEventTypesMarkup } from '../util.js';
+import { getEventTypesMarkup } from '../utils/render.js';
 import AbstractView from './abstract.js';
 
 const createTripPointCreationFormTemplate = (allTripPointsData) => {

@@ -1,4 +1,4 @@
-import { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements } from '../util.js';
+import { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements } from '../utils/common.js';
 import dayjs from 'dayjs';
 
 const DESCRIPTION_NUMBER_START = 1;

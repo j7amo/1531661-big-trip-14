@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { getEventTypesMarkup, getAvailableOffersMarkup } from '../util.js';
+import { getEventTypesMarkup, getAvailableOffersMarkup } from '../utils/render.js';
 import AbstractView from './abstract.js';
 
 const createTripPointEditTemplate = (currentTripPointData, eventTypeToOffersMap, destinations) => {
