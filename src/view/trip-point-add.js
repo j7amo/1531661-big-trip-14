@@ -1,5 +1,6 @@
 // import dayjs from 'dayjs';
-import { createNewElement, getEventTypesMarkup } from '../util.js';
+import { getEventTypesMarkup } from '../util.js';
+import AbstractView from './abstract.js';
 
 const createTripPointCreationFormTemplate = (allTripPointsData) => {
   return `<li class="trip-events__item">
@@ -121,25 +122,13 @@ const createTripPointCreationFormTemplate = (allTripPointsData) => {
 };
 
 // по аналогии с site-menu.js производим "перевод на классы"
-export default class TripPointAddFormView {
+export default class TripPointAddFormView extends AbstractView {
   constructor(allTripPointsData) {
-    this._element = null;
+    super();
     this._allTripPointsData = allTripPointsData;
   }
 
   getTemplate() {
     return createTripPointCreationFormTemplate(this._allTripPointsData);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createNewElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }

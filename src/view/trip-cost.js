@@ -1,4 +1,4 @@
-import { createNewElement } from '../util.js';
+import AbstractView from './abstract.js';
 
 const createTripCostTemplate = (allTripPointsData) => {
   let fullTripCost = 0;
@@ -10,25 +10,13 @@ const createTripCostTemplate = (allTripPointsData) => {
 };
 
 // по аналогии с site-menu.js производим "перевод на классы"
-export default class TripCostView {
+export default class TripCostView extends AbstractView {
   constructor(allTripPointsData) {
-    this._element = null;
+    super();
     this._allTripPointsData = allTripPointsData;
   }
 
   getTemplate() {
     return createTripCostTemplate(this._allTripPointsData);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createNewElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }

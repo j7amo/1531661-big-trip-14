@@ -1,4 +1,4 @@
-import { createNewElement } from '../util.js';
+import AbstractView from './abstract.js';
 
 const createNoTripPointsTemplate = () => {
   return `<li class="trip-events__item">
@@ -9,24 +9,8 @@ const createNoTripPointsTemplate = () => {
 };
 
 // по аналогии с site-menu.js производим "перевод на классы"
-export default class NoTripPointsView {
-  constructor() {
-    this._element = null;
-  }
-
+export default class NoTripPointsView extends AbstractView {
   getTemplate() {
     return createNoTripPointsTemplate();
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createNewElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }

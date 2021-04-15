@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { createNewElement } from '../util.js';
+import AbstractView from './abstract.js';
 
 const getEndDateCorrectViewFormat = (beginDate, sortedTripPoints) => {
   return dayjs(beginDate).month() === dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).month()
@@ -38,25 +38,13 @@ const createTripInfoTemplate = (allTripPointsData = '') => {
 };
 
 // по аналогии с site-menu.js производим "перевод на классы"
-export default class TripInfoView {
+export default class TripInfoView extends AbstractView {
   constructor(allTripPointsData) {
-    this._element = null;
+    super();
     this._allTripPointsData = allTripPointsData;
   }
 
   getTemplate() {
     return createTripInfoTemplate(this._allTripPointsData);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createNewElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }

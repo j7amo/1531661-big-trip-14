@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { createNewElement } from '../util.js';
+import AbstractView from './abstract.js';
 
 const MINUTES_IN_DAY = 1440;
 const MINUTES_IN_HOUR = 60;
@@ -93,26 +93,14 @@ const createTripPointTemplate = (id, tripPointData) => {
 };
 
 // по аналогии с site-menu.js производим "перевод на классы"
-export default class TripPointView {
+export default class TripPointView extends AbstractView {
   constructor(id, tripPointData) {
-    this._element = null;
+    super();
     this._id = id;
     this._tripPointData = tripPointData;
   }
 
   getTemplate() {
     return createTripPointTemplate(this._id, this._tripPointData);
-  }
-
-  getElement() {
-    if (!this._element) {
-      this._element = createNewElement(this.getTemplate());
-    }
-
-    return this._element;
-  }
-
-  removeElement() {
-    this._element = null;
   }
 }
