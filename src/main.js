@@ -5,6 +5,7 @@ import SiteMenuView from './view/site-menu';
 import FiltersView from './view/filters.js';
 import SortView from './view/sort.js';
 import TripPointsListView from './view/trip-points-list.js';
+//import NoTripPointsView from './view/no-trip-points.js';
 import TripPointEditFormView from './view/trip-point-edit.js';
 //import TripPointAddFormView from './view/trip-point-add.js';
 import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
@@ -93,6 +94,9 @@ const renderTripPoint = (tripPointsList, id, tripPoint) => {
 // рендерим моки
 const prettyMocks = Array.from(tripPointsMocks.entries()).sort(([,firstTripPoint], [,secondTripPoint]) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
 prettyMocks.forEach(([id, tripPoint]) => renderTripPoint(tripEventsList, id, tripPoint));
+
+// рендерим заглушку для проверки
+//renderElement(tripEventsList, new NoTripPointsView().getElement(), RenderPosition.BEFOREEND);
 
 /*// свяжем взаимодействие чекбоксов-опций с общей стоимостью поездки
 const setSelectedOffersToTripPriceDependency = () => {
