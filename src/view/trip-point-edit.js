@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
-import { getEventTypesMarkup, getAvailableOffersMarkup, createNewElement } from '../util.js';
+import { getEventTypesMarkup, getAvailableOffersMarkup } from '../utils/render.js';
+import AbstractView from './abstract.js';
 
 const createTripPointEditTemplate = (currentTripPointData, eventTypeToOffersMap, destinations) => {
   const {
@@ -84,27 +85,37 @@ const createTripPointEditTemplate = (currentTripPointData, eventTypeToOffersMap,
 };
 
 // по аналогии с site-menu.js производим "перевод на классы"
-export default class TripPointEditFormView {
+export default class TripPointEditFormView extends AbstractView {
   constructor(currentTripPointData, eventTypeToOffersMap, destinations) {
-    this._element = null;
+    super();
     this._currentTripPointData = currentTripPointData;
     this._eventTypeToOffersMap = eventTypeToOffersMap;
     this._destinations = destinations;
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._editClickHandler = this._editClickHandler.bind(this);
   }
 
   getTemplate() {
     return createTripPointEditTemplate(this._currentTripPointData, this._eventTypeToOffersMap, this._destinations);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createNewElement(this.getTemplate());
-    }
-
-    return this._element;
+  _formSubmitHandler(evt) {
+    evt.preventDefault();
+    this._callback.formSubmit();
   }
 
-  removeElement() {
-    this._element = null;
+  _editClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.click();
+  }
+
+  setFormSubmitHandler(callback) {
+    this._callback.formSubmit = callback;
+    this.getElement().querySelector('.event--edit').addEventListener('submit', this._formSubmitHandler);
+  }
+
+  setEditClickHandler(callback) {
+    this._callback.click = callback;
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._editClickHandler);
   }
 }
