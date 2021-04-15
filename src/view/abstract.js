@@ -6,6 +6,9 @@ export default class Abstract {
       throw new Error('Can\'t instantiate abstract class');
     }
     this._element = null;
+    // добавляем новое свойство, в котором будем хранить переданные коллбэки
+    // (видимо, для последующего удаления обработчиков)
+    this._callback = {};
   }
 
   getTemplate() {

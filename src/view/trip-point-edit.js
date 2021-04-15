@@ -91,9 +91,31 @@ export default class TripPointEditFormView extends AbstractView {
     this._currentTripPointData = currentTripPointData;
     this._eventTypeToOffersMap = eventTypeToOffersMap;
     this._destinations = destinations;
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._editClickHandler = this._editClickHandler.bind(this);
   }
 
   getTemplate() {
     return createTripPointEditTemplate(this._currentTripPointData, this._eventTypeToOffersMap, this._destinations);
+  }
+
+  _formSubmitHandler(evt) {
+    evt.preventDefault();
+    this._callback.formSubmit();
+  }
+
+  _editClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.click();
+  }
+
+  setFormSubmitHandler(callback) {
+    this._callback.formSubmit = callback;
+    this.getElement().querySelector('.event--edit').addEventListener('submit', this._formSubmitHandler);
+  }
+
+  setEditClickHandler(callback) {
+    this._callback.click = callback;
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._editClickHandler);
   }
 }

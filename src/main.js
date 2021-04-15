@@ -70,20 +70,19 @@ const renderTripPoint = (tripPointsList, id, tripPoint) => {
   };
 
   // подпишемся на click треугольной кнопки, когда пункт маршрута в обычном представлении
-  tripPointCard.getElement().querySelector('.event__rollup-btn').addEventListener('click', () => {
+  tripPointCard.setEditClickHandler(() => {
     switchFromCardToForm();
     document.addEventListener('keydown', onEscKeyDown);
   });
 
   // подпишемся на click треугольной кнопки, когда пункт маршрута в представлении формы редактирования
-  tripPointEditForm.getElement().querySelector('.event__rollup-btn').addEventListener('click', () => {
+  tripPointEditForm.setEditClickHandler(() => {
     switchFromFormToCard();
     document.removeEventListener('keydown', onEscKeyDown);
   });
 
   // подпишемся на событие submit, когда пункт маршрута в представлении формы редактирования
-  tripPointEditForm.getElement().querySelector('.event--edit').addEventListener('submit', (evt) => {
-    evt.preventDefault();
+  tripPointEditForm.setFormSubmitHandler(() => {
     switchFromFormToCard();
     document.removeEventListener('keydown', onEscKeyDown);
   });
