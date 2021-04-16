@@ -3,6 +3,7 @@ import TripInfoView from './view/trip-info.js';
 import TripCostView from './view/trip-cost.js';
 import SiteMenuView from './view/site-menu';
 import FiltersView from './view/filters.js';
+import TripBoardView from './view/trip-board.js';
 import SortView from './view/sort.js';
 import TripPointsListView from './view/trip-points-list.js';
 //import NoTripPointsView from './view/no-trip-points.js';
@@ -25,7 +26,7 @@ const tripMainElement = document.querySelector('.trip-main');
 const tripInfoElement = tripMainElement.querySelector('.trip-info');
 const tripControlsNavigationElement = tripMainElement.querySelector('.trip-controls__navigation');
 const tripFiltersElement = tripMainElement.querySelector('.trip-controls__filters');
-const tripEventsElement = document.querySelector('.trip-events');
+const tripBoardContainer = document.querySelector('.page-main__container');
 
 //генерим моки
 const destinations = generateDestinations();
@@ -36,6 +37,10 @@ render(tripInfoElement, new TripInfoView(tripPointsMocks), RenderPosition.BEFORE
 render(tripInfoElement, new TripCostView(tripPointsMocks), RenderPosition.BEFOREEND);
 render(tripControlsNavigationElement, new SiteMenuView(), RenderPosition.BEFOREEND);
 render(tripFiltersElement, new FiltersView(), RenderPosition.BEFOREEND);
+render(tripBoardContainer, new TripBoardView(), RenderPosition.BEFOREEND);
+
+const tripEventsElement = tripBoardContainer.querySelector('.trip-events');
+
 render(tripEventsElement, new SortView(), RenderPosition.BEFOREEND);
 render(tripEventsElement, new TripPointsListView(), RenderPosition.BEFOREEND);
 
