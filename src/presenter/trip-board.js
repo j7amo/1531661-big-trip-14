@@ -2,9 +2,8 @@ import TripBoardView from '../view/trip-board.js';
 import SortView from '../view/sort.js';
 import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
-import TripPointView from '../view/trip-point.js';
-import TripPointEditFormView from '../view/trip-point-edit.js';
-import {render, RenderPosition, replace} from '../utils/render.js';
+import { render, RenderPosition } from '../utils/render.js';
+import TripPointPresenter from './trip-point.js';
 
 // Общая концепция паттерна MVP, если я правильно понимаю, заключается в следующем:
 // ============================
@@ -80,51 +79,14 @@ export default class TripBoardPresenter {
   // Напишем внутренние функции по смене одного представления на другое, Повесим нужные обработчики (вот тут не совсем понял,
   // каким образом локальная константа tripPointEditForm осталась доступной после завершения работы функции renderTripPoint,
   // единственное предположение - замыкание)
-  _renderTripPoint(tripPoint) {
-    const tripPointCardComponent = new TripPointView(tripPoint);
-    const tripPointEditFormComponent = new TripPointEditFormView(tripPoint, this._eventTypeToOffersMap, this._destinations);
-
-    const switchFromCardToForm = () => {
-      replace(tripPointEditFormComponent, tripPointCardComponent);
-    };
-
-    const switchFromFormToCard = () => {
-      replace(tripPointCardComponent, tripPointEditFormComponent);
-    };
-
-    // подпишемся на нажатие Escape, когда пункт маршрута в представлении формы редактирования
-    const onEscKeyDown = (evt) => {
-      if (evt.key === 'Esc' || evt.key === 'Escape') {
-        evt.preventDefault();
-        switchFromFormToCard();
-        document.addEventListener('keydown', onEscKeyDown);
-      }
-    };
-
-    // подпишемся на click треугольной кнопки, когда пункт маршрута в обычном представлении
-    tripPointCardComponent.setEditClickHandler(() => {
-      switchFromCardToForm();
-      document.addEventListener('keydown', onEscKeyDown);
-    });
-
-    // подпишемся на click треугольной кнопки, когда пункт маршрута в представлении формы редактирования
-    tripPointEditFormComponent.setEditClickHandler(() => {
-      switchFromFormToCard();
-      document.removeEventListener('keydown', onEscKeyDown);
-    });
-
-    // подпишемся на событие submit, когда пункт маршрута в представлении формы редактирования
-    tripPointEditFormComponent.setFormSubmitHandler(() => {
-      switchFromFormToCard();
-      document.removeEventListener('keydown', onEscKeyDown);
-    });
-
-    render(this._tripPointsListComponent, tripPointCardComponent, RenderPosition.BEFOREEND);
+  _renderTripPoint(tripPoint, eventTypeToOffersMap, destinations) {
+    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent);
+    tripPointPresenter.init(tripPoint, eventTypeToOffersMap, destinations);
   }
 
   // Метод для рендеринга N-точек маршрута за раз
   _renderTripPoints(from, to) {
-    this._tripPoints.slice(from, to).forEach((tripPoint) => this._renderTripPoint(tripPoint));
+    this._tripPoints.slice(from, to).forEach((tripPoint) => this._renderTripPoint(tripPoint, this._eventTypeToOffersMap, this._destinations));
   }
 
   // Метод для рендеринга заглушки

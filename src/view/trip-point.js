@@ -98,16 +98,16 @@ export default class TripPointView extends AbstractView {
   constructor(tripPoint) {
     super();
     this._tripPoint = tripPoint;
-    // 5) Так как декоратор _clickHandler мы передаём в addEventListener и декоратор в своей внутренней логике
+    // 5) Так как декоратор _handleClick мы передаём в addEventListener и декоратор в своей внутренней логике
     // явно использует ключевое слово THIS (а мы помним, что в случае с addEventListener'ом THIS = DOM-элементу,
-    // на котором произошло отслеживаемое событие), то когда _clickHandler дойдёт до своей внутренней инструкции
+    // на котором произошло отслеживаемое событие), то когда _handleClick дойдёт до своей внутренней инструкции
     // this._callback.click(), то естественно у DOM-элемента не будет свойства _callback и метода click().
     // Зато они есть у экземпляра класса TripPointView! Значит, нам надо принудительно переназначить контекст this
-    // для метода _clickHandler. Сделать это можно при помощи встроенного в ЖабуСкрипт метода bind, который
+    // для метода _handleClick. Сделать это можно при помощи встроенного в ЖабуСкрипт метода bind, который
     // должен быть вызван НА нужном методе и ему (bind'у) должен быть передан в качестве аргумента нужный контекст this.
     // В результате работы метода bind возвращается новая функция, которая "жёстко прибита" к нужному нам контексту this.
     // И нам надо эту функцию где-то сохранить, чтобы мы могли её использовать. Сохраняем в свойстве объекта.
-    this._clickHandler = this._clickHandler.bind(this);
+    this._handleClick = this._handleClick.bind(this);
   }
 
   getTemplate() {
@@ -117,7 +117,7 @@ export default class TripPointView extends AbstractView {
   // 4) Данный приватный метод - это обёртка, которая по сути декорирует переданный коллбэк, добавляя ему
   // какую-то полезную логику (в данном случае preventDefault - то есть можно при передаче коллбэка
   // уже не писать отдельно строку evt.preventDefault() - это сделает за нас декоратор)
-  _clickHandler(evt) {
+  _handleClick(evt) {
     evt.preventDefault();
     this._callback.click();
   }
@@ -141,6 +141,6 @@ export default class TripPointView extends AbstractView {
     // объектом нашего класса TripPointView).Это не одно и то же. Сначала мы получаем объект(экземпляр класса),
     // а затем при помощи методов его класса получаем DOM-элемент.
     this._callback.click = callback;
-    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._clickHandler);
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._handleClick);
   }
 }
