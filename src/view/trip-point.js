@@ -5,12 +5,13 @@ const MINUTES_IN_DAY = 1440;
 const MINUTES_IN_HOUR = 60;
 const MAX_NUMBER_WITH_LEADING_ZERO = 9;
 
-const createTripPointTemplate = (id, tripPointData) => {
+const createTripPointTemplate = (tripPointData) => {
   const {
     price,
     beginDate,
     endDate,
     destination,
+    id,
     isFavorite,
     offers,
     type,
@@ -94,10 +95,9 @@ const createTripPointTemplate = (id, tripPointData) => {
 
 // по аналогии с site-menu.js производим "перевод на классы"
 export default class TripPointView extends AbstractView {
-  constructor(id, tripPointData) {
+  constructor(tripPoint) {
     super();
-    this._id = id;
-    this._tripPointData = tripPointData;
+    this._tripPoint = tripPoint;
     // 5) Так как декоратор _clickHandler мы передаём в addEventListener и декоратор в своей внутренней логике
     // явно использует ключевое слово THIS (а мы помним, что в случае с addEventListener'ом THIS = DOM-элементу,
     // на котором произошло отслеживаемое событие), то когда _clickHandler дойдёт до своей внутренней инструкции
@@ -111,7 +111,7 @@ export default class TripPointView extends AbstractView {
   }
 
   getTemplate() {
-    return createTripPointTemplate(this._id, this._tripPointData);
+    return createTripPointTemplate(this._tripPoint);
   }
 
   // 4) Данный приватный метод - это обёртка, которая по сути декорирует переданный коллбэк, добавляя ему

@@ -1,5 +1,6 @@
 import { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements } from '../utils/common.js';
 import dayjs from 'dayjs';
+import nanoid from 'nanoid';
 
 const DESCRIPTION_NUMBER_START = 1;
 const DESCRIPTION_NUMBER_END = 5;
@@ -112,20 +113,21 @@ const generateOffers = () => {
 // генерируем точки маршрута
 const generateTripPoints = (numberOfTripPoints, destinations, eventTypeToOffersMap) => {
   const tripPoints = new Map();
-  const uniqueIds = new Set();
+  //const uniqueIds = new Set();
   for (let i = 0; i < numberOfTripPoints; i++) {
-    let id = i + 1;
-    while (uniqueIds.has(id)) {
-      id += 1;
-    }
-    uniqueIds.add(id);
+    const id = nanoid();
+    // let id = i + 1;
+    // while (uniqueIds.has(id)) {
+    //   id += 1;
+    // }
+    // uniqueIds.add(id);
     const beginDate = dayjs().add(getRandomInt(DATE_MIN_NUMBER, DATE_MAX_NUMBER), 'day').toDate();
     const endDate = dayjs(beginDate).add(getRandomInt(DATE_CURRENT_NUMBER, DATE_MAX_NUMBER), 'day').add(getRandomInt(MINUTES_MIN_NUMBER, MINUTES_MAX_NUMBER),'minute').toDate();
     const type = tripPointTypes[i];
-    if (tripPoints.has(id)) {
-      i--;
-      continue;
-    }
+    // if (tripPoints.has(id)) {
+    //   i--;
+    //   continue;
+    // }
     const allOffers = eventTypeToOffersMap.get(type).offers;
     const selectedOffers = getFixedLengthArrayOfRandomElements(allOffers, getRandomInt(0, allOffers.length));
     const basePrice = getRandomInt(PRICE_MIN, PRICE_MAX);
