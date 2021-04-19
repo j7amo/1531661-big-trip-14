@@ -9,7 +9,7 @@ export default class TripPointPresenter {
     this._tripPointEditFormComponent = null;
     this._handleCardEditClick = this._handleCardEditClick.bind(this);
     this._handleFormEditClick = this._handleFormEditClick.bind(this);
-    this._handleFormSubmit = this._handleFormSubmit(this);
+    this._handleFormSubmit = this._handleFormSubmit.bind(this);
   }
 
   init(tripPoint, eventTypeToOffersMap, destinations) {
