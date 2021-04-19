@@ -1,6 +1,6 @@
 import { getRandomInt, getRandomElement, getFixedLengthArrayOfRandomElements } from '../utils/common.js';
 import dayjs from 'dayjs';
-import nanoid from 'nanoid';
+import { nanoid } from 'nanoid';
 
 const DESCRIPTION_NUMBER_START = 1;
 const DESCRIPTION_NUMBER_END = 5;

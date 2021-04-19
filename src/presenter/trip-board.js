@@ -57,7 +57,7 @@ export default class TripBoardPresenter {
     this._destinations = destinations;
     // 3) отрисуем на странице контейнеры (общий и список поездок)
     render(this._tripBoardContainer, this._tripBoardComponent, RenderPosition.BEFOREEND);
-    render(this._tripBoardContainer, this._tripPointsListComponent, RenderPosition.BEFOREEND);
+    render(this._tripBoardComponent, this._tripPointsListComponent, RenderPosition.BEFOREEND);
     // 4) отрисуем полезные данные (сортировку и сами точки маршрута) - это инкапсулировано в методе _renderTripBoard
     this._renderTripBoard();
   }
@@ -72,7 +72,14 @@ export default class TripBoardPresenter {
     render(this._tripBoardComponent, this._sortComponent, RenderPosition.AFTERBEGIN);
   }
 
-  // Метод, куда уйдёт логика создания и рендеринга компонентов точки маршрута,
+  // напишем функцию (по аналогии с демонстрационным проектом), которая будет рендерить точку маршрута (по аналогии
+  // с рендерингом задачи из списка задач)
+  // здесь мы сразу создадим 2 представления точки маршрута:
+  // - обычная карточка
+  // - форма редактирования
+  // Напишем внутренние функции по смене одного представления на другое, Повесим нужные обработчики (вот тут не совсем понял,
+  // каким образом локальная константа tripPointEditForm осталась доступной после завершения работы функции renderTripPoint,
+  // единственное предположение - замыкание)
   _renderTripPoint(tripPoint) {
     const tripPointCardComponent = new TripPointView(tripPoint);
     const tripPointEditFormComponent = new TripPointEditFormView(tripPoint, this._eventTypeToOffersMap, this._destinations);

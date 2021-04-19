@@ -3,25 +3,13 @@ import TripInfoView from './view/trip-info.js';
 import TripCostView from './view/trip-cost.js';
 import SiteMenuView from './view/site-menu';
 import FiltersView from './view/filters.js';
-import TripBoardView from './view/trip-board.js';
-import SortView from './view/sort.js';
-import TripPointsListView from './view/trip-points-list.js';
-//import NoTripPointsView from './view/no-trip-points.js';
-import TripPointEditFormView from './view/trip-point-edit.js';
-//import TripPointAddFormView from './view/trip-point-add.js';
+import TripBoardPresenter from './presenter/trip-board.js';
 import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
-import TripPointView from './view/trip-point.js';
-import {
-  //getAvailableOffersMarkup,
-  //removeAllChildNodes,
-  //initializeSelectedOffers,
-  render,
-  replace,
-  RenderPosition
-} from './utils/render.js';
+import { render, RenderPosition } from './utils/render.js';
 
 const EVENT_COUNT = 10;
 
+// находим DOM-элементы
 const tripMainElement = document.querySelector('.trip-main');
 const tripInfoElement = tripMainElement.querySelector('.trip-info');
 const tripControlsNavigationElement = tripMainElement.querySelector('.trip-controls__navigation');
@@ -33,72 +21,17 @@ const destinations = generateDestinations();
 const eventTypeToOffersMap = generateOffers();
 const tripPointsMocks = generateTripPoints(EVENT_COUNT, destinations, eventTypeToOffersMap);
 
+// отрисовываем представления
 render(tripInfoElement, new TripInfoView(tripPointsMocks), RenderPosition.BEFOREEND);
 render(tripInfoElement, new TripCostView(tripPointsMocks), RenderPosition.BEFOREEND);
 render(tripControlsNavigationElement, new SiteMenuView(), RenderPosition.BEFOREEND);
 render(tripFiltersElement, new FiltersView(), RenderPosition.BEFOREEND);
-render(tripBoardContainer, new TripBoardView(), RenderPosition.BEFOREEND);
-
-const tripEventsElement = tripBoardContainer.querySelector('.trip-events');
-
-render(tripEventsElement, new SortView(), RenderPosition.BEFOREEND);
-render(tripEventsElement, new TripPointsListView(), RenderPosition.BEFOREEND);
-
-const tripEventsList = tripEventsElement.querySelector('.trip-events__list');
-
-// напишем функцию (по аналогии с демонстрационным проектом), которая будет рендерить точку маршрута (по аналогии
-// с рендерингом задачи из списка задач)
-// здесь мы сразу создадим 2 представления точки маршрута:
-// - обычная карточка
-// - форма редактирования
-// Напишем внутренние функции по смене одного представления на другое, Повесим нужные обработчики (вот тут не совсем понял,
-// каким образом локальная константа tripPointEditForm осталась доступной после завершения работы функции renderTripPoint,
-// единственное предположение - замыкание)
-const renderTripPoint = (tripPointsList, id, tripPoint) => {
-  const tripPointCard = new TripPointView(id, tripPoint);
-  const tripPointEditForm = new TripPointEditFormView(tripPoint, eventTypeToOffersMap, destinations);
-
-  const switchFromCardToForm = () => {
-    replace(tripPointEditForm, tripPointCard);
-  };
-
-  const switchFromFormToCard = () => {
-    replace(tripPointCard, tripPointEditForm);
-  };
-
-  // подпишемся на нажатие Escape, когда пункт маршрута в представлении формы редактирования
-  const onEscKeyDown = (evt) => {
-    if (evt.key === 'Esc' || evt.key === 'Escape') {
-      evt.preventDefault();
-      switchFromFormToCard();
-      document.addEventListener('keydown', onEscKeyDown);
-    }
-  };
-
-  // подпишемся на click треугольной кнопки, когда пункт маршрута в обычном представлении
-  tripPointCard.setEditClickHandler(() => {
-    switchFromCardToForm();
-    document.addEventListener('keydown', onEscKeyDown);
-  });
-
-  // подпишемся на click треугольной кнопки, когда пункт маршрута в представлении формы редактирования
-  tripPointEditForm.setEditClickHandler(() => {
-    switchFromFormToCard();
-    document.removeEventListener('keydown', onEscKeyDown);
-  });
-
-  // подпишемся на событие submit, когда пункт маршрута в представлении формы редактирования
-  tripPointEditForm.setFormSubmitHandler(() => {
-    switchFromFormToCard();
-    document.removeEventListener('keydown', onEscKeyDown);
-  });
-
-  render(tripPointsList, tripPointCard.getElement(), RenderPosition.BEFOREEND);
-};
 
 // рендерим моки
-const prettyMocks = Array.from(tripPointsMocks.entries()).sort(([,firstTripPoint], [,secondTripPoint]) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
-prettyMocks.forEach(([id, tripPoint]) => renderTripPoint(tripEventsList, id, tripPoint));
+const prettyMocks = Array.from(tripPointsMocks.values()).sort((firstTripPoint, secondTripPoint) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
+
+const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer);
+tripBoardPresenter.init(prettyMocks, eventTypeToOffersMap, destinations);
 
 // рендерим заглушку для проверки
 //renderElement(tripEventsList, new NoTripPointsView().getElement(), RenderPosition.BEFOREEND);
