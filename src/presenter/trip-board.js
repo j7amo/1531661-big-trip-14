@@ -2,6 +2,7 @@ import TripBoardView from '../view/trip-board.js';
 import SortView from '../view/sort.js';
 import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
+import { updateItem } from '../utils/common.js';
 import { render, RenderPosition } from '../utils/render.js';
 import TripPointPresenter from './trip-point.js';
 
@@ -85,6 +86,9 @@ export default class TripBoardPresenter {
     // где ключ - id точки маршрута, значение - объект презентера. На этапе создания экземпляра презентера доски
     // это буде пустой объект, который мы будем "наполнять" в методе "_renderTripPoint"
     this._tripPointPresenters = {};
+    // так как метод _handleTripPointChange мы будем подписывать на событие и в нём есть контекст this, то нужно этот
+    // контекст "прибить" к экземпляру текущего класса (TripBoardPresenter)
+    this._handleTripPointChange = this._handleTripPointChange.bind(this);
   }
 
   // далее объявим методы презентера
@@ -101,6 +105,15 @@ export default class TripBoardPresenter {
     render(this._tripBoardComponent, this._tripPointsListComponent, RenderPosition.BEFOREEND);
     // 4) отрисуем полезные данные (сортировку и сами точки маршрута) - это инкапсулировано в методе _renderTripBoard
     this._renderTripBoard();
+  }
+
+  // объявим метод обработки события изменения точки маршрута
+  _handleTripPointChange(updatedTripPoint) {
+    // возвращаем обновлённый массив точек маршрута, с которым работают разные методы, которые должны знать об изменениях
+    this._tripPoints = updateItem(this._tripPoints, updatedTripPoint);
+    // так как поменялись данные, то нужно обновить соответствующие представления (через презентер точки маршрута, который
+    // можно найти по id в объекте, в котором собраны все презентеры точек маршрута)
+    this._tripPointPresenters[updatedTripPoint.id].init(updatedTripPoint, this._eventTypeToOffersMap, this._destinations);
   }
 
   // метод для отрисовки списка точек маршрута
