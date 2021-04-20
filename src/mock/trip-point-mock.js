@@ -90,7 +90,7 @@ const generateDestinations = () => {
   return destinations;
 };
 
-//функция, которая генерирует офферы
+//функция, которая генерирует офферы и связывает их в мапе с типами точек маршрута
 const generateOffers = () => {
   const offers = new Map();
   for (let i = 0; i < tripPointTypes.length; i++) {
