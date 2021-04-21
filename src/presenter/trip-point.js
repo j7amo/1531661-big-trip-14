@@ -3,10 +3,15 @@ import TripPointEditFormView from '../view/trip-point-edit.js';
 import {remove, render, RenderPosition, replace} from '../utils/render.js';
 
 export default class TripPointPresenter {
-  constructor(tripPointsListContainer) {
+  // модифицируем конструктор презентера точки маршрута так, чтобы он принимал тот самый переданный из презентера
+  // доски метод, который обновляет данные (модель)
+  // мы это делаем для того, чтобы пробросить этот функционал через все "слои" (презентеры, вьюхи)
+  constructor(tripPointsListContainer, changeData) {
     this._tripPointsListContainer = tripPointsListContainer;
+    this._changeData = changeData;
     this._tripPointCardComponent = null;
     this._tripPointEditFormComponent = null;
+    this._handleFavoritesClick = this._handleFavoritesClick.bind(this);
     this._handleCardEditClick = this._handleCardEditClick.bind(this);
     this._handleFormEditClick = this._handleFormEditClick.bind(this);
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
@@ -33,6 +38,7 @@ export default class TripPointPresenter {
     this._tripPointCardComponent.setEditClickHandler(this._handleCardEditClick);
     this._tripPointEditFormComponent.setEditClickHandler(this._handleFormEditClick);
     this._tripPointEditFormComponent.setFormSubmitHandler(this._handleFormSubmit);
+    this._tripPointCardComponent.setFavoriteClickHandler(this._handleFavoritesClick);
 
     // так как при первой инициализации нам не нужно ОБНОВЛЯТЬ вьюху, а нужно её впервые отрисовать (т.е. вызвать render),
     // то добавляем проверку на null двух ранее упомянутых строк
@@ -81,6 +87,30 @@ export default class TripPointPresenter {
     document.removeEventListener('keydown', this._handleEscKeyDown);
   }
 
+  // обработчик события нажатия кнопки-звёздочки (Favorites)
+  // тут требуются пояснения: когда пользователь во вьюхе нажмёт на Favorites, он спровоцирует изменение данных -
+  // - изменение значения свойства isFavorite в объекте точки маршрута, а так как за изменение данных модели и передачу
+  // изменённых данных обратно во вьюху у нас отвечает метод changeData (это в презентере точки маршрута, в презентере
+  // доски - приватный _handleTripPointChange) и мы знаем, что он принимает на вход изменённый объект, то нам надо
+  // в обработчике клика по Favorites получить изменённый объект и передать его этому методу (changeData)
+  _handleFavoritesClick() {
+    this._changeData(
+    // здесь по аналогии с демо-проектом мы будем пользоваться методом Object.assign, который позволяет создать новый
+    // объект и скопировать туда все перечисляемые свойства источников копирования (других объектов)
+    // на лекции говорилось про мутабельность / иммутабельность, но без подробностей
+      Object.assign(
+        {},
+        this._tripPoint,
+        // здесь маленькая хитрость: в качестве 2-го источника для копирования свойств мы указываем некий придуманный
+        // нами объект, в котором значение свойства(флага) isFavorite меняется на противоположное тому, которое было
+        // установлено в модели (данных, моках) до клика на Favorites
+        {
+          isFavorite: !this._tripPoint.isFavorite,
+        },
+      ),
+    );
+  }
+
   // обработчик события нажатия Escape, когда пункт маршрута в представлении формы редактирования
   _handleEscKeyDown(evt) {
     if (evt.key === 'Esc' || evt.key === 'Escape') {
@@ -100,7 +130,10 @@ export default class TripPointPresenter {
   }
 
   // обработчик события submit, когда пункт маршрута в представлении формы редактирования
-  _handleFormSubmit() {
+  _handleFormSubmit(tripPoint) {
+    // теперь при submit'е формы мы также обновляем данные (предполагается, что пользователь, раз он был в форме
+    // редактирования и нажал submit, то он что-то поменял, значит, данные надо обновить
+    this._changeData(tripPoint);
     this._switchFromFormToCard();
   }
 }

@@ -108,6 +108,7 @@ export default class TripBoardPresenter {
   }
 
   // объявим метод обработки события изменения точки маршрута
+  // ВНИМАНИЕ! Это и есть ИЗМЕНЕНИЕ ДАННЫХ в ответ на действия ПОЛЬЗОВАТЕЛЯ!
   _handleTripPointChange(updatedTripPoint) {
     // возвращаем обновлённый массив точек маршрута, с которым работают разные методы, которые должны знать об изменениях
     this._tripPoints = updateItem(this._tripPoints, updatedTripPoint);
@@ -135,7 +136,9 @@ export default class TripBoardPresenter {
   // каким образом локальная константа tripPointEditForm осталась доступной после завершения работы функции renderTripPoint,
   // единственное предположение - замыкание)
   _renderTripPoint(tripPoint, eventTypeToOffersMap, destinations) {
-    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent);
+    // при создании экземпляра презентера точки маршрута будем передавать ему в конструктор метод для обновления данных
+    // возможно здесь идёт речь о внедрении зависимости (dependency injection), но это не точно...
+    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent, this._handleTripPointChange);
     tripPointPresenter.init(tripPoint, eventTypeToOffersMap, destinations);
     this._tripPointPresenters[tripPoint.id] = tripPointPresenter;
   }

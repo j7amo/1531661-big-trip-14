@@ -86,9 +86,9 @@ const createTripPointEditTemplate = (currentTripPointData, eventTypeToOffersMap,
 
 // по аналогии с site-menu.js производим "перевод на классы"
 export default class TripPointEditFormView extends AbstractView {
-  constructor(currentTripPointData, eventTypeToOffersMap, destinations) {
+  constructor(tripPoint, eventTypeToOffersMap, destinations) {
     super();
-    this._currentTripPointData = currentTripPointData;
+    this._tripPoint = tripPoint;
     this._eventTypeToOffersMap = eventTypeToOffersMap;
     this._destinations = destinations;
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
@@ -96,12 +96,14 @@ export default class TripPointEditFormView extends AbstractView {
   }
 
   getTemplate() {
-    return createTripPointEditTemplate(this._currentTripPointData, this._eventTypeToOffersMap, this._destinations);
+    return createTripPointEditTemplate(this._tripPoint, this._eventTypeToOffersMap, this._destinations);
   }
 
   _handleFormSubmit(evt) {
     evt.preventDefault();
-    this._callback.formSubmit();
+    // корректируем обработчик клика на submit формы: теперь, так как у нас коллбэк, который приходит сюда из презентера
+    // точки маршрута принимает аргумент - точку маршрута, то и здесь мы её должны передать
+    this._callback.formSubmit(this._tripPoint);
   }
 
   _handleEditClick(evt) {

@@ -108,6 +108,7 @@ export default class TripPointView extends AbstractView {
     // В результате работы метода bind возвращается новая функция, которая "жёстко прибита" к нужному нам контексту this.
     // И нам надо эту функцию где-то сохранить, чтобы мы могли её использовать. Сохраняем в свойстве объекта.
     this._handleClick = this._handleClick.bind(this);
+    this._handleFavoriteClick = this._handleFavoriteClick.bind(this);
   }
 
   getTemplate() {
@@ -142,5 +143,20 @@ export default class TripPointView extends AbstractView {
   setEditClickHandler(callback) {
     this._callback.click = callback;
     this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._handleClick);
+  }
+
+  // теперь по аналогии с ранее объявленными методами (приватным _handleClick и публичным setEditClickHandler, которые
+  // работаю "в паре") объявим методы для работы с событием клика по Favorite на вьюхе
+
+  // обёртка, которая даёт доп.функционал переданному коллбэку (в данном случае preventDefault)
+  _handleFavoriteClick(evt) {
+    evt.preventDefault();
+    this._callback.favoriteClick();
+  }
+
+  // сеттер обработчика (подписываем передаваемый снаружи коллбэк на нужное нам событие на элементе вьюхи)
+  setFavoriteClickHandler(callback) {
+    this._callback.favoriteClick = callback;
+    this.getElement().querySelector('.event__favorite-btn').addEventListener('click', this._handleFavoriteClick);
   }
 }
