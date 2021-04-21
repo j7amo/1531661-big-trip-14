@@ -86,36 +86,38 @@ const createTripPointEditTemplate = (currentTripPointData, eventTypeToOffersMap,
 
 // по аналогии с site-menu.js производим "перевод на классы"
 export default class TripPointEditFormView extends AbstractView {
-  constructor(currentTripPointData, eventTypeToOffersMap, destinations) {
+  constructor(tripPoint, eventTypeToOffersMap, destinations) {
     super();
-    this._currentTripPointData = currentTripPointData;
+    this._tripPoint = tripPoint;
     this._eventTypeToOffersMap = eventTypeToOffersMap;
     this._destinations = destinations;
-    this._formSubmitHandler = this._formSubmitHandler.bind(this);
-    this._editClickHandler = this._editClickHandler.bind(this);
+    this._handleFormSubmit = this._handleFormSubmit.bind(this);
+    this._handleEditClick = this._handleEditClick.bind(this);
   }
 
   getTemplate() {
-    return createTripPointEditTemplate(this._currentTripPointData, this._eventTypeToOffersMap, this._destinations);
+    return createTripPointEditTemplate(this._tripPoint, this._eventTypeToOffersMap, this._destinations);
   }
 
-  _formSubmitHandler(evt) {
+  _handleFormSubmit(evt) {
     evt.preventDefault();
-    this._callback.formSubmit();
+    // корректируем обработчик клика на submit формы: теперь, так как у нас коллбэк, который приходит сюда из презентера
+    // точки маршрута принимает аргумент - точку маршрута, то и здесь мы её должны передать
+    this._callback.formSubmit(this._tripPoint);
   }
 
-  _editClickHandler(evt) {
+  _handleEditClick(evt) {
     evt.preventDefault();
     this._callback.click();
   }
 
   setFormSubmitHandler(callback) {
     this._callback.formSubmit = callback;
-    this.getElement().querySelector('.event--edit').addEventListener('submit', this._formSubmitHandler);
+    this.getElement().querySelector('.event--edit').addEventListener('submit', this._handleFormSubmit);
   }
 
   setEditClickHandler(callback) {
     this._callback.click = callback;
-    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._editClickHandler);
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._handleEditClick);
   }
 }
