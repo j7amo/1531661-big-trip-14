@@ -2,15 +2,26 @@ import TripPointView from '../view/trip-point.js';
 import TripPointEditFormView from '../view/trip-point-edit.js';
 import {remove, render, RenderPosition, replace} from '../utils/render.js';
 
+// заведём перечисление режимов точек маршрута
+const Mode = {
+  DEFAULT: 'DEFAULT',
+  EDITING: 'EDITING',
+};
+
 export default class TripPointPresenter {
   // модифицируем конструктор презентера точки маршрута так, чтобы он принимал тот самый переданный из презентера
-  // доски метод, который обновляет данные (модель)
+  // доски метод, который обновляет данные (модель), а также метод, который позволяет грамотно разрешить ситуацию с
+  // одновременным открытием ТОЛЬКО ОДНОЙ формы редактирования точки маршрута
   // мы это делаем для того, чтобы пробросить этот функционал через все "слои" (презентеры, вьюхи)
-  constructor(tripPointsListContainer, changeData) {
+  constructor(tripPointsListContainer, changeData, changeMode) {
     this._tripPointsListContainer = tripPointsListContainer;
     this._changeData = changeData;
+    this._changeMode = changeMode;
     this._tripPointCardComponent = null;
     this._tripPointEditFormComponent = null;
+    // объявляем свойство, которое будет хранить режим, в котором сейчас находится презентер точки маршрута
+    // и как следствие то, какая вьюха сейчас отображается
+    this._mode = Mode.DEFAULT;
     this._handleFavoritesClick = this._handleFavoritesClick.bind(this);
     this._handleCardEditClick = this._handleCardEditClick.bind(this);
     this._handleFormEditClick = this._handleFormEditClick.bind(this);
@@ -57,11 +68,15 @@ export default class TripPointPresenter {
     // и если это условие выполняется, то наш скрипт упадёт, так как мы в этой проверке принудительно выбрасываем ошибку
     // Для того, чтобы избежать этой ситуации, можно перед проведением замены сделать ещё 2 проверки на предмет
     // наличия таких элементов в уже отрисованной разметке приложения
-    if (this._tripPointsListContainer.getElement().contains(this._prevTripPointCardComponent.getElement())) {
+    // UPDATE: так как у нас появился теперь режим отображения точки маршрута и мы его для каждого презентера храним
+    // в свойстве, то теперь можно убрать проверку this._tripPointsListContainer.getElement().contains(this._prevTripPointCardComponent.getElement())
+    // и заменить её на проверку того, какой режим сейчас у точки маршрута, что будет равноценно присутствию соответствующей
+    // режиму разметки
+    if (this._mode === Mode.DEFAULT) {
       replace(this._tripPointCardComponent, this._prevTripPointCardComponent);
     }
 
-    if (this._tripPointEditFormComponent.getElement().contains(this._prevTripPointEditFormComponent.getElement())) {
+    if (this._mode === Mode.EDITING) {
       replace(this._tripPointEditFormComponent, this._prevTripPointEditFormComponent);
     }
 
@@ -77,14 +92,31 @@ export default class TripPointPresenter {
     remove(this._tripPointEditFormComponent);
   }
 
+  // добавим в публичный интерфейс метод, который будет сбрасывать(менять) режим редактирования в обычный
+  resetView() {
+    if (this._mode === Mode.EDITING) {
+      this._switchFromFormToCard();
+    }
+  }
+
   _switchFromCardToForm() {
     replace(this._tripPointEditFormComponent, this._tripPointCardComponent);
     document.addEventListener('keydown', this._handleEscKeyDown);
+    // ВНИМАНИЕ! Ключевой момент! при вызове в презентере точки маршрута метода _switchFromCardToForm
+    // у нас в презентере доски должен отработать метод _handleModeChange, в котором описана логика вызова метода
+    // resetView для всех презентеров точки маршрута. Это нужно для принудительного сброса всех вьюх
+    // в "режим чтения" при каждом наступлении события нажатия кнопки редактирования точки маршрута,
+    // что позволит как раз избежать возникновения ситуации с более чем одной открытой формой редактирования точки
+    this._changeMode();
+    // теперь при смене одного отображения на другое не забываем также переключить соответствующий флагв нужный "режим"
+    this._mode = Mode.EDITING;
   }
 
   _switchFromFormToCard() {
     replace(this._tripPointCardComponent, this._tripPointEditFormComponent);
     document.removeEventListener('keydown', this._handleEscKeyDown);
+    // теперь при смене одного отображения на другое не забываем также переключить соответствующий флагв нужный "режим"
+    this._mode = Mode.DEFAULT;
   }
 
   // обработчик события нажатия кнопки-звёздочки (Favorites)

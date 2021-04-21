@@ -89,6 +89,7 @@ export default class TripBoardPresenter {
     // так как метод _handleTripPointChange мы будем подписывать на событие и в нём есть контекст this, то нужно этот
     // контекст "прибить" к экземпляру текущего класса (TripBoardPresenter)
     this._handleTripPointChange = this._handleTripPointChange.bind(this);
+    this._handleModeChange = this._handleModeChange.bind(this);
   }
 
   // далее объявим методы презентера
@@ -117,6 +118,15 @@ export default class TripBoardPresenter {
     this._tripPointPresenters[updatedTripPoint.id].init(updatedTripPoint, this._eventTypeToOffersMap, this._destinations);
   }
 
+  // объявим метод для обработки изменения режима (просмотр/редактирование точки маршрута)
+  // логика в том, что этот метод должен вызываться тогда, когда мы хотим перейти в режим редактирования точки маршрута
+  // его задача: переключить все вьюхи в режим чтения (карточки точки маршрута), что позволит нам избежать ситуации,
+  // когда у нас уже открыта какая-то точка маршрута в режиме редактирования и мы входим в режим редактироания на другой
+  // точке маршрута и у нас одновременно получается > 1 формы редактирования, чего по условиям в ТЗ быть НЕ должно
+  _handleModeChange() {
+    Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.resetView());
+  }
+
   // метод для отрисовки списка точек маршрута
   _renderTripPointsList() {
     this._renderTripPoints(0, Math.min(this._tripPoints.length, EVENT_COUNT));
@@ -137,8 +147,9 @@ export default class TripBoardPresenter {
   // единственное предположение - замыкание)
   _renderTripPoint(tripPoint, eventTypeToOffersMap, destinations) {
     // при создании экземпляра презентера точки маршрута будем передавать ему в конструктор метод для обновления данных
+    // и метод для обработки изменения режима просмотра/редактирования
     // возможно здесь идёт речь о внедрении зависимости (dependency injection), но это не точно...
-    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent, this._handleTripPointChange);
+    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent, this._handleTripPointChange, this._handleModeChange);
     tripPointPresenter.init(tripPoint, eventTypeToOffersMap, destinations);
     this._tripPointPresenters[tripPoint.id] = tripPointPresenter;
   }
