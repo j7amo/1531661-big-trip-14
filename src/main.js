@@ -16,7 +16,7 @@ const tripControlsNavigationElement = tripMainElement.querySelector('.trip-contr
 const tripFiltersElement = tripMainElement.querySelector('.trip-controls__filters');
 const tripBoardContainer = document.querySelector('.page-main__container');
 
-//генерим моки
+//генерим  моки
 const destinations = generateDestinations();
 const eventTypeToOffersMap = generateOffers();
 const tripPointsMocks = generateTripPoints(EVENT_COUNT, destinations, eventTypeToOffersMap);
