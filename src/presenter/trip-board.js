@@ -4,6 +4,8 @@ import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
 import { updateItem } from '../utils/common.js';
 import { render, RenderPosition } from '../utils/render.js';
+import { SortType } from '../const.js';
+import { sortByDateUp, sortByPriceDown, sortByTimeDown } from '../utils/trip-point.js';
 import TripPointPresenter from './trip-point.js';
 
 // Общая концепция паттерна MVP, если я правильно понимаю, заключается в следующем:
@@ -86,17 +88,23 @@ export default class TripBoardPresenter {
     // где ключ - id точки маршрута, значение - объект презентера. На этапе создания экземпляра презентера доски
     // это буде пустой объект, который мы будем "наполнять" в методе "_renderTripPoint"
     this._tripPointPresenters = {};
+    // добавим свойство с текущим типом сортировки
+    this._currentSortType = SortType.DEFAULT;
     // так как метод _handleTripPointChange мы будем подписывать на событие и в нём есть контекст this, то нужно этот
     // контекст "прибить" к экземпляру текущего класса (TripBoardPresenter)
     this._handleTripPointChange = this._handleTripPointChange.bind(this);
     this._handleModeChange = this._handleModeChange.bind(this);
+    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
   }
 
   // далее объявим методы презентера
   // Метод для инициализации (начала работы) модуля,
   init(tripPoints, eventTypeToOffersMap, destinations) {
     // 1) скопируем исходные данные, которые могут быть изменены (хорошая практика) и присвоим их соотв. свойству
+    // эти данные будем спокойно менять (сортировка / фильтрация)
     this._tripPoints = tripPoints.slice();
+    // а эти данные будут нам нужны для сохранения исходного порядка
+    this._sourcedTripPoints = tripPoints.slice();
     // 2) остальные данные, которые нужны нам для нашей логики (в данном случае речь идёт о словаре и массиве)
     // также присвоим соотв.свойствам, но копировать не будем, так как это неизменяемые данные
     this._eventTypeToOffersMap = eventTypeToOffersMap;
@@ -113,6 +121,9 @@ export default class TripBoardPresenter {
   _handleTripPointChange(updatedTripPoint) {
     // возвращаем обновлённый массив точек маршрута, с которым работают разные методы, которые должны знать об изменениях
     this._tripPoints = updateItem(this._tripPoints, updatedTripPoint);
+    // так как теперь у нас есть 2 массива данных (с изменённым в результате фильтрации/сортировки порядком и исходный),
+    // то будем так же обновлять и массив точек маршрута с исходным порядком
+    this._sourcedTripPoints = updateItem(this._sourcedTripPoints, updatedTripPoint);
     // так как поменялись данные, то нужно обновить соответствующие представления (через презентер точки маршрута, который
     // можно найти по id в объекте, в котором собраны все презентеры точек маршрута)
     this._tripPointPresenters[updatedTripPoint.id].init(updatedTripPoint, this._eventTypeToOffersMap, this._destinations);
@@ -127,6 +138,48 @@ export default class TripBoardPresenter {
     Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.resetView());
   }
 
+  // объявим метод, который будет непосредственно заниматься сортировкой
+  // он будет принимать на вход тип сортировки (который придёт из data-аттрибута) и вызывать на мутабельном массиве
+  // встроенный в ЖабаСкрипт метод для сортировки массивов - SORT
+  // в него уже в качестве коллбэков передадим функции сортировки, которые мы опишем отдельно в утилитарном модуле
+  _sortTripPoints(sortType) {
+    switch(sortType) {
+      case SortType.DEFAULT:
+        this._tripPoints.sort(sortByDateUp);
+        break;
+      case SortType.SORT_BY_PRICE_DOWN:
+        this._tripPoints.sort(sortByPriceDown);
+        break;
+      case SortType.SORT_BY_TIME_DOWN:
+        this._tripPoints.sort(sortByTimeDown);
+        break;
+    }
+
+    // и в конце работы метода не забываем засэтить внутреннее свойство currentSortType
+    this._currentSortType = sortType;
+  }
+
+  // объявим метод для обработки события смены сортировки списка точек маршрута
+  // метод должен быть приватным, так как мы будем передавать его в качестве коллбэка для подписки на клик во вьюхе сортировки
+  _handleSortTypeChange(sortType) {
+    // сделаем проверку на случай, если у нас текущая сортировка соответствует выбираемой пользователем
+    // и в этом случае НЕ будем ничего делать - зачем нам лишняя перерисовка?
+    if (this._currentSortType === sortType) {
+      return;
+    }
+
+    // теперь при наступлении события выбора сортировки пользователем в случае, если сортировка отличается от текущей
+    // 1) производим сортировку (изменение данных)
+    this._sortTripPoints(sortType);
+    // 2) производим очистку списка точек маршрута
+    this._clearTripPointsList();
+    // 3) отрисовываем по-новой список точек маршрута
+    this._renderTripPointsList();
+    // p.s. В каких-то случаях оптимальнее было бы переставлять DOM-элементы,
+    // но в нашем случае со слов авторов курса проще всё грохнуть и тупо перерисовать (думаю, что если бы списки
+    // были огромные, то вряд ли это было бы оптимальным решением).
+  }
+
   // метод для отрисовки списка точек маршрута
   _renderTripPointsList() {
     this._renderTripPoints(0, Math.min(this._tripPoints.length, EVENT_COUNT));
@@ -135,6 +188,9 @@ export default class TripBoardPresenter {
   // Метод для рендеринга сортировки
   _renderSort() {
     render(this._tripBoardComponent, this._sortComponent, RenderPosition.AFTERBEGIN);
+    // воспользуемся публичным интерфейсом вьюхи сортировки и подпишем коллбэк,
+    // в котором будет вся логика сортировки,на клик
+    this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
   }
 
   // напишем функцию (по аналогии с демонстрационным проектом), которая будет рендерить точку маршрута (по аналогии
