@@ -95,11 +95,15 @@ export default class TripPointEditFormView extends AbstractView {
     this._stateData = TripPointEditFormView.parseTripPointToStateData(tripPoint);
     this._eventTypeToOffersMap = eventTypeToOffersMap;
     this._destinations = destinations;
+
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
     this._handleEditClick = this._handleEditClick.bind(this);
     this._getEventTypesPickerMarkup = this._getEventTypesPickerMarkup.bind(this);
     this._getDestinationOptionsMarkup = this._getDestinationOptionsMarkup.bind(this);
     this._getAvailableOffersMarkup = this._getAvailableOffersMarkup.bind(this);
+    this._handlePriceInput = this._handlePriceInput.bind(this);
+
+    this._setInnerHandlers();
   }
 
   getTemplate() {
@@ -120,6 +124,33 @@ export default class TripPointEditFormView extends AbstractView {
   _handleEditClick(evt) {
     evt.preventDefault();
     this._callback.click();
+  }
+
+  // добавим ещё внутренних обработчиков, которые будут заниматься тем, что будут обрабатывать события, сгенерированные
+  // пользователем на вьюхе, которые изменяют состояние вьюхи, но при этом могут быть в любой момент отменены, если
+  // пользователь их не засабмитит
+
+  // объявим обработчик ввода стоимости точки маршрута
+  _handlePriceInput(evt) {
+    evt.preventDefault();
+    this.updateState({
+      price: evt.target.value,
+    }, true);
+  }
+
+  // так как внутренних обработчиков будет > 1, то имеет смысл этот однотипный функционал запихнуть в один метод
+  // это нам также пригодится в сценарии, когда нам нужно будет переподписывать обработчики после перерисовки компонентов
+  _setInnerHandlers() {
+    this.getElement().querySelector('.event__input--price').addEventListener('change', this._handlePriceInput);
+  }
+
+  // объявим метод, который будет восстанавливать обработчики (как внешние, так и внутренние) после перерисовки
+  restoreHandlers() {
+    // переподписываем внутренние
+    this._setInnerHandlers();
+    // переподписываем внешние
+    this.setFormSubmitHandler(this._callback.formSubmit);
+    this.setEditClickHandler(this._callback.click);
   }
 
   setFormSubmitHandler(callback) {
@@ -159,6 +190,48 @@ export default class TripPointEditFormView extends AbstractView {
 
     // мы должны изучить состояние вьюхи и на основании этого состояния как-то изменить исходные данные
     return stateData;
+  }
+
+  // Научим наш компонент обновлять свою разметку
+  // Для этого объявим метод updateElement, его задача удалить старый DOM элемент, вызвать генерацию нового
+  // и заменить один на другой. Идея в том, что при генерации нового элемента будет снова зачитано свойство _data.
+  // И если мы сперва обновим его, а потом шаблон, то в итоге получим элемент с новыми данными.
+  updateElementMarkup() {
+    const oldElement = this.getElement();
+    const oldElementParent = oldElement.parentElement;
+    this.removeElement();
+
+    const newElement = this.getElement();
+
+    oldElementParent.replaceChild(newElement, oldElement);
+
+    this.restoreHandlers();
+  }
+
+  // Научим наш компонент обновлять своё состояние:
+  // для этого объявим метод, в который будет передавать объект с обновлёнными свойствами (это может быть только часть
+  // объекта, если обновилось, например, только одно свойство)
+  updateState(update, localStateUpdate) {
+    // делаем проверку на случай передачи пустого объекта (если пустой - ничего не обновляем)
+    if (!update) {
+      return;
+    }
+
+    // сначала обновляем состояние вьюхи (обновлённые данные в update)
+    this._stateData = Object.assign(
+      {},
+      this._stateData,
+      update,
+    );
+
+    // добавляем проверку на тот случай, когда у нас локальное обновление состояния вьюхи без полной перерисовки
+    if (localStateUpdate) {
+      return;
+    }
+
+    // и только если все проверки пройдены (то есть пришёл какой-то не пустой объект и флаг localStateUpdate = false)
+    // затем полностью обновляем разметку вьюхи целиком
+    this.updateElementMarkup();
   }
 
   // объявим всякие разные внутренние методы, которые будем использовать в логике работы самой вьюхи:
