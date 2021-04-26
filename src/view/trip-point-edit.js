@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
 import AbstractView from './abstract.js';
-import {nanoid} from 'nanoid';
+import { nanoid } from 'nanoid';
+import { createNewElement, replace } from '../utils/render.js';
 
-const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDestinationOptionsMarkup, getAvailableOffersMarkup) => {
+const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDestinationOptionsMarkup, initAvailableOffersMarkup, getDestinationDescriptionMarkup) => {
   const {
     price: currentPrice,
     beginDate: currentBeginDate,
@@ -71,14 +72,10 @@ const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDe
           <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
           <div class="event__available-offers">
-            ${getAvailableOffersMarkup()}
+            ${initAvailableOffersMarkup()}
           </div>
         </section>
-
-        <section class="event__section  event__section--destination">
-          <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-          <p class="event__destination-description">${currentDestination.description}</p>
-        </section>
+        ${getDestinationDescriptionMarkup(currentDestination.name)}
       </section>
     </form>
   </li>`;
@@ -100,8 +97,13 @@ export default class TripPointEditFormView extends AbstractView {
     this._handleEditClick = this._handleEditClick.bind(this);
     this._getEventTypesPickerMarkup = this._getEventTypesPickerMarkup.bind(this);
     this._getDestinationOptionsMarkup = this._getDestinationOptionsMarkup.bind(this);
-    this._getAvailableOffersMarkup = this._getAvailableOffersMarkup.bind(this);
+    this._getDestinationDescriptionMarkup = this._getDestinationDescriptionMarkup.bind(this);
+    this._initAvailableOffersMarkup = this._initAvailableOffersMarkup.bind(this);
     this._handlePriceInput = this._handlePriceInput.bind(this);
+    this._handleBeginDateInput = this._handleBeginDateInput.bind(this);
+    this._handleEndDateInput = this._handleEndDateInput.bind(this);
+    this._handleEventTypeChange = this._handleEventTypeChange.bind(this);
+    this._handleDestinationChange = this._handleDestinationChange.bind(this);
 
     this._setInnerHandlers();
   }
@@ -109,7 +111,7 @@ export default class TripPointEditFormView extends AbstractView {
   getTemplate() {
     // UPDATE: так как мы начали работать с состоянием вьюхи, то теперь мы должны не просто передавать в метод генерации
     // разметки исходные данные, но и флаги состояния (для этого у нас появился специальный метод)
-    return createTripPointEditTemplate(this._stateData, this._getEventTypesPickerMarkup, this._getDestinationOptionsMarkup, this._getAvailableOffersMarkup);
+    return createTripPointEditTemplate(this._stateData, this._getEventTypesPickerMarkup, this._getDestinationOptionsMarkup, this._initAvailableOffersMarkup, this._getDestinationDescriptionMarkup);
   }
 
   _handleFormSubmit(evt) {
@@ -138,10 +140,62 @@ export default class TripPointEditFormView extends AbstractView {
     }, true);
   }
 
+  // объявим обработчик ввода начальной даты в точке маршрута
+  _handleBeginDateInput(evt) {
+    evt.preventDefault();
+    this.updateState({
+      beginDate: evt.target.value,
+    }, true);
+  }
+
+  // объявим обработчик ввода конечной даты в точке маршрута
+  _handleEndDateInput(evt) {
+    evt.preventDefault();
+    this.updateState({
+      endDate: evt.target.value,
+    }, true);
+  }
+
+  // объявим обработчик смены типа события (тут механизм будет другой, так как нам только надо отрисовать доступные
+  // предложения для нового типа события, обновлять состояние вьюхи смысла наверное нет, так как пользователю
+  // ещё нужно будет осуществить новый выбор опций)
+  _handleEventTypeChange(evt) {
+    evt.preventDefault();
+    // обновляем разметку
+    const newElement = createNewElement(this._getAvailableOffersMarkup(evt.target.value));
+    const oldElement = this.getElement().querySelector('.event__available-offers');
+    replace(newElement, oldElement);
+    // обновляем состояние вьюхи (должен поменяться тип события)
+    const update = {
+      //offers: this._eventTypeToOffersMap.get(evt.target.value),
+      type: evt.target.value,
+    };
+    this.updateState(update, false);
+  }
+
+  // объявим обработчик смены направления
+  _handleDestinationChange(evt) {
+    evt.preventDefault();
+    // обновляем разметку
+    const newElement = createNewElement(this._getDestinationDescriptionMarkup(evt.target.value));
+    console.log('Новый элемент: ' + newElement);
+    const oldElement = this.getElement().querySelector('.event__section--destination');
+    console.log('Старый элемент: ' + oldElement);
+    console.log('Родитель старого элемента: ' + oldElement.parentElement);
+    replace(newElement, oldElement);
+    this.updateState({
+      destination: this._destinations.get(evt.target.value),
+    }, true);
+  }
+
   // так как внутренних обработчиков будет > 1, то имеет смысл этот однотипный функционал запихнуть в один метод
   // это нам также пригодится в сценарии, когда нам нужно будет переподписывать обработчики после перерисовки компонентов
   _setInnerHandlers() {
     this.getElement().querySelector('.event__input--price').addEventListener('change', this._handlePriceInput);
+    this.getElement().querySelector('.event__input--time[name = "event-start-time"]').addEventListener('change', this._handleBeginDateInput);
+    this.getElement().querySelector('.event__input--time[name = "event-end-time"]').addEventListener('change', this._handlePriceInput);
+    this.getElement().querySelector('.event__type-group').addEventListener('change', this._handleEventTypeChange);
+    this.getElement().querySelector('.event__field-group--destination').addEventListener('change', this._handleDestinationChange);
   }
 
   // объявим метод, который будет восстанавливать обработчики (как внешние, так и внутренние) после перерисовки
@@ -193,25 +247,35 @@ export default class TripPointEditFormView extends AbstractView {
   }
 
   // Научим наш компонент обновлять свою разметку
-  // Для этого объявим метод updateElement, его задача удалить старый DOM элемент, вызвать генерацию нового
-  // и заменить один на другой. Идея в том, что при генерации нового элемента будет снова зачитано свойство _data.
-  // И если мы сперва обновим его, а потом шаблон, то в итоге получим элемент с новыми данными.
   updateElementMarkup() {
+    // получаем ссылку на текущий DOM-элемент (то есть получается, что на данном этапе у нас и в this._element,
+    // и в oldElement "лежит" ссылка на один и тот же DOM-элемент)
     const oldElement = this.getElement();
+    // получаем ссылку на DOM-родителя
     const oldElementParent = oldElement.parentElement;
+    // в нашем самописном API класса Abstract метод removeElement присваивает this._element = null
+    // и хотя this._element больше не ссылается на DOM-элемент, эта ссылка всё ещё есть в oldElement, то есть
+    // физически DOM-элемент, несмотря на вызов removeElement, всё ещё существует
     this.removeElement();
 
+    // вызываем getElement у this и так как к этому моменту this._element = null, то происходит полная повторная генерация
+    // разметки. А так как getElement "дёргает" getTemplate, а в getTemplate первым аргументом приходит this._stateData,
+    // то если мы перед вызовом updateElementMarkup заблаговременно вызовем метод, который обновит this._stateData, то на
+    // выходе мы получим DOM-элемент с изменившейся разметкой
     const newElement = this.getElement();
 
+    // а дальше API ЖабаСкрипта позволяет нам произвести замену старого элемента (который мы в самом начале метода "забэкапили"
+    // на новый с обновлённой разметкой
     oldElementParent.replaceChild(newElement, oldElement);
 
+    // и так как мы полностью перерисовали разметку всего элемента, то обработчики "сломались" и нужно их переподписать
     this.restoreHandlers();
   }
 
   // Научим наш компонент обновлять своё состояние:
   // для этого объявим метод, в который будет передавать объект с обновлёнными свойствами (это может быть только часть
   // объекта, если обновилось, например, только одно свойство)
-  updateState(update, localStateUpdate) {
+  updateState(update/*, localStateUpdate*/) {
     // делаем проверку на случай передачи пустого объекта (если пустой - ничего не обновляем)
     if (!update) {
       return;
@@ -224,10 +288,10 @@ export default class TripPointEditFormView extends AbstractView {
       update,
     );
 
-    // добавляем проверку на тот случай, когда у нас локальное обновление состояния вьюхи без полной перерисовки
-    if (localStateUpdate) {
-      return;
-    }
+    // // добавляем проверку на тот случай, когда у нас локальное обновление состояния вьюхи без полной перерисовки
+    // if (localStateUpdate) {
+    //   return;
+    // }
 
     // и только если все проверки пройдены (то есть пришёл какой-то не пустой объект и флаг localStateUpdate = false)
     // затем полностью обновляем разметку вьюхи целиком
@@ -276,7 +340,7 @@ export default class TripPointEditFormView extends AbstractView {
   // объявим метод, который будет получать из словаря (тип точки маршрута - список доступных опций/предложений) разметку
   // для отображения доступных для данного типа точки маршрута предложений
   // небольшой нюанс: сразу же проверим какие предложения в пришедших данных уже были выбраны и выберем соотв.чекбоксы
-  _getAvailableOffersMarkup() {
+  _initAvailableOffersMarkup() {
     let availableOffersOptionsMarkup = '';
     const selectedOffers = this._stateData.offers;
     const availableOffers = this._eventTypeToOffersMap.get(this._stateData.type).offers;
@@ -296,5 +360,56 @@ export default class TripPointEditFormView extends AbstractView {
     }
 
     return availableOffersOptionsMarkup;
+  }
+
+  // Надо реализовать получение разметки доступных предложений и отрисовку этой самой разметки по клику
+  // на соответствующие радио-кнопки. Это должно происходить с привязкой к чему-то, что гарантированно
+  // позволит идентифицировать текущую радио-кнопку. По идее это её value, так как value в радио-кнопках уникален.
+  // Тогда при смене радио-кнопки считываем через evt.target.value значение и используем его в качестве ключа,
+  // по которому ищем в мапе this._eventTypeToOffersMap доступные для данного типа (ключа) офферы
+  // этот приватный метод как раз будет отрисовывать доступные офферы
+  _getAvailableOffersMarkup(eventType) {
+    let availableOffersOptionsMarkup = '<div class="event__available-offers">';
+    const availableOffers = this._eventTypeToOffersMap.get(eventType).offers;
+    for (let i = 0; i < availableOffers.length; i++) {
+      const randomId = nanoid();
+      const offerTemplate = `<div class="event__offer-selector">
+      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${this._stateData.type}">
+      <label class="event__offer-label" for="event-offer-${randomId}-1">
+        <span class="event__offer-title">${availableOffers[i].title}</span>
+        &plus;&euro;&nbsp;
+        <span class="event__offer-price">${availableOffers[i].price}</span>
+      </label>
+    </div>`;
+
+      availableOffersOptionsMarkup += offerTemplate;
+    }
+
+    availableOffersOptionsMarkup += '</div>';
+
+    return availableOffersOptionsMarkup;
+  }
+
+  // объявим метод, который будет возвращать разметку раздела Destination
+  // эту разметку по аналогии с разметкой доступных офферов будет использовать обработчик смены направления точки маршрута,
+  // а также метод, который возвращает общую разметку данной вьюхи (формы редактирования)
+  _getDestinationDescriptionMarkup(destinationName) {
+    const newDestination = this._destinations.get(destinationName);
+    let eventPhotosMarkup = '';
+    for (let i = 0; i < newDestination.pictures.length; i++) {
+      const src = newDestination.pictures[i].src;
+      const alt = newDestination.pictures[i].description;
+      eventPhotosMarkup += `<img class="event__photo" src="${src}" alt="${alt}">`;
+    }
+
+    return `<section class="event__section  event__section--destination">
+          <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+          <p class="event__destination-description">${newDestination.description}</p>
+          <div class="event__photos-container">
+            <div class="event__photos-tape">
+              ${eventPhotosMarkup}
+            </div>
+          </div>
+        </section>`;
   }
 }
