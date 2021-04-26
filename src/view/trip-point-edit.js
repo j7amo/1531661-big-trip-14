@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import AbstractView from './abstract.js';
+import AbstractSmartView from './smart-view.js';
 import { nanoid } from 'nanoid';
 import { createNewElement, replace } from '../utils/render.js';
 
@@ -82,7 +82,7 @@ const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDe
 };
 
 // по аналогии с site-menu.js производим "перевод на классы"
-export default class TripPointEditFormView extends AbstractView {
+export default class TripPointEditFormView extends AbstractSmartView {
   constructor(tripPoint, eventTypeToOffersMap, destinations) {
     super();
     // UPDATE: теперь мы не работаем напрямую с данными, а работаем с состоянием вьюхи, поэтому сразу при создании
@@ -103,6 +103,7 @@ export default class TripPointEditFormView extends AbstractView {
     this._handleBeginDateInput = this._handleBeginDateInput.bind(this);
     this._handleEndDateInput = this._handleEndDateInput.bind(this);
     this._handleEventTypeChange = this._handleEventTypeChange.bind(this);
+    this._handleEventOffersToggle = this._handleEventOffersToggle.bind(this);
     this._handleDestinationChange = this._handleDestinationChange.bind(this);
 
     this._setInnerHandlers();
@@ -135,6 +136,8 @@ export default class TripPointEditFormView extends AbstractView {
   // объявим обработчик ввода стоимости точки маршрута
   _handlePriceInput(evt) {
     evt.preventDefault();
+    // при изменении цены НЕ надо полностью перерисовывать вьюху, так как
+    // цена в рамках формы редактирования ни на что не влияет, поэтому передаём флаг localStateUpdate = true
     this.updateState({
       price: evt.target.value,
     }, true);
@@ -143,6 +146,8 @@ export default class TripPointEditFormView extends AbstractView {
   // объявим обработчик ввода начальной даты в точке маршрута
   _handleBeginDateInput(evt) {
     evt.preventDefault();
+    // при изменении начальной даты НЕ надо полностью перерисовывать вьюху, так как
+    // начальная дата в рамках формы редактирования ни на что не влияет, поэтому передаём флаг localStateUpdate = true
     this.updateState({
       beginDate: evt.target.value,
     }, true);
@@ -151,6 +156,8 @@ export default class TripPointEditFormView extends AbstractView {
   // объявим обработчик ввода конечной даты в точке маршрута
   _handleEndDateInput(evt) {
     evt.preventDefault();
+    // при изменении конечной даты НЕ надо полностью перерисовывать вьюху, так как
+    // конечная дата в рамках формы редактирования ни на что не влияет, поэтому передаём флаг localStateUpdate = true
     this.updateState({
       endDate: evt.target.value,
     }, true);
@@ -162,27 +169,57 @@ export default class TripPointEditFormView extends AbstractView {
   _handleEventTypeChange(evt) {
     evt.preventDefault();
     // обновляем разметку
+    // производим замену блока со старыми офферами на блок с новыми офферами
     const newElement = createNewElement(this._getAvailableOffersMarkup(evt.target.value));
     const oldElement = this.getElement().querySelector('.event__available-offers');
     replace(newElement, oldElement);
+    // производим скрытие выпадающего списка, в котором происходит выбор типа точки маршрута
+    document.querySelector('.event__type-toggle').checked = false;
     // обновляем состояние вьюхи (должен поменяться тип события)
     const update = {
-      //offers: this._eventTypeToOffersMap.get(evt.target.value),
+    // offers: this._eventTypeToOffersMap.get(evt.target.value),
       type: evt.target.value,
     };
+    // при изменении типа события НАДО полностью перерисовывать вьюху, так как в рамках формы редактирования
+    // в этот момент происходит сразу несколько вещей:
+    // 1) меняется картинка типа события
+    // 2) меняется название типа события в текстовом поле
+    // 3) меняется блок с доступными офферами
+    // Поэтому проще передать флаг localStateUpdate = false, чтобы сразу обновить всё это
     this.updateState(update, false);
+  }
+
+  // объявим обработчик выбора дополнительных опций (речь идёт как о выборе, так и об отмене уже выбранных опций)
+  // так как здесь нам предстоит менять массив, то при каждой смене состояния чекбокса:
+  // 1) получим обновлённый массив
+  // 2) произведём замену старого массива на новый с помощью updateState
+  _handleEventOffersToggle(evt) {
+    evt.preventDefault();
+    console.log('В обработчике выбора дополнительных опций');
+    const offerCheckbox = evt.target;
+    const offer = document.querySelector(`label[for = ${offerCheckbox.id}]`).querySelector('span').textContent;
+    if (offerCheckbox.checked === false && this._stateData.offers.includes(offer)) {
+      const index = this._stateData.offers.findIndex((thisOffer) => thisOffer === offer);
+      this.updateState({
+        offers: this._stateData.offers.splice(index, 1),
+      }, true);
+    } else if (offerCheckbox.checked === true && !this._stateData.offers.includes(offer)) {
+      this.updateState({
+        offers: this._stateData.offers.push(offer),
+      }, true);
+    }
   }
 
   // объявим обработчик смены направления
   _handleDestinationChange(evt) {
     evt.preventDefault();
-    // обновляем разметку
+    // обновляем разметку:
     const newElement = createNewElement(this._getDestinationDescriptionMarkup(evt.target.value));
-    console.log('Новый элемент: ' + newElement);
     const oldElement = this.getElement().querySelector('.event__section--destination');
-    console.log('Старый элемент: ' + oldElement);
-    console.log('Родитель старого элемента: ' + oldElement.parentElement);
     replace(newElement, oldElement);
+    // при изменении направления НЕ надо полностью перерисовывать вьюху, так как
+    // направление в рамках формы редактирования влияет только на блок DESTINATION, а для получения этой разметки у нас
+    // отдельный метод, поэтому передаём флаг localStateUpdate = true
     this.updateState({
       destination: this._destinations.get(evt.target.value),
     }, true);
@@ -196,6 +233,11 @@ export default class TripPointEditFormView extends AbstractView {
     this.getElement().querySelector('.event__input--time[name = "event-end-time"]').addEventListener('change', this._handlePriceInput);
     this.getElement().querySelector('.event__type-group').addEventListener('change', this._handleEventTypeChange);
     this.getElement().querySelector('.event__field-group--destination').addEventListener('change', this._handleDestinationChange);
+    // так как при смене типа события было принято решение делать полную перерисовку, а после её наступления мы
+    // вызываем метод restoreHandlers, который в свою очередь вызывает _setInnerHandlers, можно в методе _setInnerHandlers
+    // осуществить подписку _handleEventOffersToggle на чекбоксы дополнительных офферов
+    const availableOffers = this.getElement().querySelectorAll('.event__offer-checkbox');
+    availableOffers.forEach((offer) => offer.addEventListener('change', this._handleEventOffersToggle));
   }
 
   // объявим метод, который будет восстанавливать обработчики (как внешние, так и внутренние) после перерисовки
@@ -246,56 +288,14 @@ export default class TripPointEditFormView extends AbstractView {
     return stateData;
   }
 
-  // Научим наш компонент обновлять свою разметку
-  updateElementMarkup() {
-    // получаем ссылку на текущий DOM-элемент (то есть получается, что на данном этапе у нас и в this._element,
-    // и в oldElement "лежит" ссылка на один и тот же DOM-элемент)
-    const oldElement = this.getElement();
-    // получаем ссылку на DOM-родителя
-    const oldElementParent = oldElement.parentElement;
-    // в нашем самописном API класса Abstract метод removeElement присваивает this._element = null
-    // и хотя this._element больше не ссылается на DOM-элемент, эта ссылка всё ещё есть в oldElement, то есть
-    // физически DOM-элемент, несмотря на вызов removeElement, всё ещё существует
-    this.removeElement();
-
-    // вызываем getElement у this и так как к этому моменту this._element = null, то происходит полная повторная генерация
-    // разметки. А так как getElement "дёргает" getTemplate, а в getTemplate первым аргументом приходит this._stateData,
-    // то если мы перед вызовом updateElementMarkup заблаговременно вызовем метод, который обновит this._stateData, то на
-    // выходе мы получим DOM-элемент с изменившейся разметкой
-    const newElement = this.getElement();
-
-    // а дальше API ЖабаСкрипта позволяет нам произвести замену старого элемента (который мы в самом начале метода "забэкапили"
-    // на новый с обновлённой разметкой
-    oldElementParent.replaceChild(newElement, oldElement);
-
-    // и так как мы полностью перерисовали разметку всего элемента, то обработчики "сломались" и нужно их переподписать
-    this.restoreHandlers();
-  }
-
-  // Научим наш компонент обновлять своё состояние:
-  // для этого объявим метод, в который будет передавать объект с обновлёнными свойствами (это может быть только часть
-  // объекта, если обновилось, например, только одно свойство)
-  updateState(update/*, localStateUpdate*/) {
-    // делаем проверку на случай передачи пустого объекта (если пустой - ничего не обновляем)
-    if (!update) {
-      return;
-    }
-
-    // сначала обновляем состояние вьюхи (обновлённые данные в update)
-    this._stateData = Object.assign(
-      {},
-      this._stateData,
-      update,
+  // объявим метод для сброса состояния вьюхи на случай, если пользователь не хочет сохранять то, что он ввёл
+  reset(tripPoint) {
+    // для этого у нас есть метод updateState, которому мы передаём совместимый объект и на выходе получаем новое
+    // состояние и нам ничего не мешает в уже изменённое в результате действий пользователя состояние вьюхи "залить"
+    // первоначальное состояние вьюхи, по сути произвести сброс изменений
+    this.updateState(
+      TripPointEditFormView.parseTripPointToStateData(tripPoint),
     );
-
-    // // добавляем проверку на тот случай, когда у нас локальное обновление состояния вьюхи без полной перерисовки
-    // if (localStateUpdate) {
-    //   return;
-    // }
-
-    // и только если все проверки пройдены (то есть пришёл какой-то не пустой объект и флаг localStateUpdate = false)
-    // затем полностью обновляем разметку вьюхи целиком
-    this.updateElementMarkup();
   }
 
   // объявим всякие разные внутренние методы, которые будем использовать в логике работы самой вьюхи:

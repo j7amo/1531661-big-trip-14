@@ -147,6 +147,8 @@ export default class TripPointPresenter {
   _handleEscKeyDown(evt) {
     if (evt.key === 'Esc' || evt.key === 'Escape') {
       evt.preventDefault();
+      // делаем сброс состояния вьюхи с помощью передачи изначальных данных в написанный нами метод reset
+      this._tripPointEditFormComponent.reset(this._tripPoint);
       this._switchFromFormToCard();
     }
   }
@@ -158,6 +160,7 @@ export default class TripPointPresenter {
 
   // обработчик события click треугольной кнопки, когда пункт маршрута в представлении формы редактирования
   _handleFormEditClick() {
+    this._tripPointEditFormComponent.reset(this._tripPoint);
     this._switchFromFormToCard();
   }
 
