@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import AbstractSmartView from './smart-view.js';
 import { nanoid } from 'nanoid';
-import { createNewElement, replace } from '../utils/render.js';
+//import { createNewElement, replace } from '../utils/render.js';
 
 const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDestinationOptionsMarkup, initAvailableOffersMarkup, getDestinationDescriptionMarkup) => {
   const {
@@ -121,6 +121,7 @@ export default class TripPointEditFormView extends AbstractSmartView {
     // точки маршрута принимает аргумент - точку маршрута, то и здесь мы её должны передать
     // UPDATE: так как мы начали работать с состоянием вьюхи, то теперь мы должны изменить пришедшие данные с учётом состояния
     // вьюхи - для этого у нас появился специальный метод
+    this.updateElementMarkup();
     this._callback.formSubmit(TripPointEditFormView.parseStateDataToTripPoint(this._stateData));
   }
 
@@ -170,14 +171,16 @@ export default class TripPointEditFormView extends AbstractSmartView {
     evt.preventDefault();
     // обновляем разметку
     // производим замену блока со старыми офферами на блок с новыми офферами
-    const newElement = createNewElement(this._getAvailableOffersMarkup(evt.target.value));
-    const oldElement = this.getElement().querySelector('.event__available-offers');
-    replace(newElement, oldElement);
-    // производим скрытие выпадающего списка, в котором происходит выбор типа точки маршрута
-    document.querySelector('.event__type-toggle').checked = false;
+    // const newElement = createNewElement(this._getAvailableOffersMarkup(evt.target.value));
+    // const oldElement = this.getElement().querySelector('.event__available-offers');
+    // replace(newElement, oldElement);
+    // // производим скрытие выпадающего списка, в котором происходит выбор типа точки маршрута
+    // document.querySelector('.event__type-toggle').checked = false;
     // обновляем состояние вьюхи (должен поменяться тип события)
     const update = {
-    // offers: this._eventTypeToOffersMap.get(evt.target.value),
+      // согласно ТЗ при смене типа события предыдущие выбранные опции НЕ сохраняются
+      // это можно реализовать путём записи пустого массива поверх исходного
+      offers: [],
       type: evt.target.value,
     };
     // при изменении типа события НАДО полностью перерисовывать вьюху, так как в рамках формы редактирования
@@ -195,17 +198,40 @@ export default class TripPointEditFormView extends AbstractSmartView {
   // 2) произведём замену старого массива на новый с помощью updateState
   _handleEventOffersToggle(evt) {
     evt.preventDefault();
-    console.log('В обработчике выбора дополнительных опций');
+    // найдём чекбокс, который генерирует событие
     const offerCheckbox = evt.target;
-    const offer = document.querySelector(`label[for = ${offerCheckbox.id}]`).querySelector('span').textContent;
-    if (offerCheckbox.checked === false && this._stateData.offers.includes(offer)) {
-      const index = this._stateData.offers.findIndex((thisOffer) => thisOffer === offer);
+    // так как в данных офферы - массив объектов со свойствами title и price
+    // то соответственно нужно помнить об этом при ДОБАВЛЕНИИ в список выбранных офферов новых предложений
+    // при удалении это не так важно - особой разницы, что удалять из массива нет
+    // для того, чтобы сформировать объект для добавления в массив, нам надо распарсить из его разметки title и price
+    // так как вся связка "чекбокс - лейбл - спаны", которая описывает один оффер, лежит каждая в своём контейнере,
+    // то мы можем найти этот контейнер через чекбокс и в нём уже искать нужные для формирования объекта оффера спаны
+    // почему предлагается такой вариант: неизвестно как там в данных с сервера будут обстоять дела с id, возможно не
+    // стоит к нему привязываться - пусть лучше будет чуть более топорный, но точно работающий способ
+    const container = offerCheckbox.parentElement;
+    // получаем нужные для формирования объекта оффера значения
+    const offerTitle = container.querySelector('.event__offer-title').textContent;
+    const offerPrice = Number(container.querySelector('.event__offer-price').textContent);
+    if (offerCheckbox.checked === false) {
+      // находим под каким индексом в массиве нужный нам для удаления оффер
+      const indexToRemove = this._stateData.offers.findIndex(({ title, price }) => (title === offerTitle && price === offerPrice));
+      // здесь мы берём исходный массив и в нём производим удаление нужного оффера
+      // p.s. метод splice вовзращает удалённый элемент и мутирует при этом исходный массив
+      this._stateData.offers.splice(indexToRemove, 1);
       this.updateState({
-        offers: this._stateData.offers.splice(index, 1),
+        offers: this._stateData.offers,
       }, true);
-    } else if (offerCheckbox.checked === true && !this._stateData.offers.includes(offer)) {
+    } else {
+      // формируем объект для добавления в массив выбранных офферов
+      const offerToAdd = {
+        title: offerTitle,
+        price: offerPrice,
+      };
+      // здесь мы берём исходный массив и в нём производим добавление нужного оффера
+      // p.s. очередной прикол из мира массивов: метод push возвращает новую длину массива
+      this._stateData.offers.push(offerToAdd);
       this.updateState({
-        offers: this._stateData.offers.push(offer),
+        offers: this._stateData.offers,
       }, true);
     }
   }
@@ -214,15 +240,15 @@ export default class TripPointEditFormView extends AbstractSmartView {
   _handleDestinationChange(evt) {
     evt.preventDefault();
     // обновляем разметку:
-    const newElement = createNewElement(this._getDestinationDescriptionMarkup(evt.target.value));
-    const oldElement = this.getElement().querySelector('.event__section--destination');
-    replace(newElement, oldElement);
+    // const newElement = createNewElement(this._getDestinationDescriptionMarkup(evt.target.value));
+    // const oldElement = this.getElement().querySelector('.event__section--destination');
+    // replace(newElement, oldElement);
     // при изменении направления НЕ надо полностью перерисовывать вьюху, так как
     // направление в рамках формы редактирования влияет только на блок DESTINATION, а для получения этой разметки у нас
     // отдельный метод, поэтому передаём флаг localStateUpdate = true
     this.updateState({
       destination: this._destinations.get(evt.target.value),
-    }, true);
+    }, false);
   }
 
   // так как внутренних обработчиков будет > 1, то имеет смысл этот однотипный функционал запихнуть в один метод
@@ -278,6 +304,11 @@ export default class TripPointEditFormView extends AbstractSmartView {
     return Object.assign(
       {},
       tripPoint,
+      {
+        // так как Object.assign не предлагает функционал глубокого копирования, то если у нас в объекте имеются другие
+        // вложенные объекты, нам нужно позаботиться о том, чтобы в состояние ТАКЖЕ ПОПАЛИ ИХ КОПИИ!
+        offers: tripPoint.offers.slice(),
+      },
     );
   }
 
@@ -295,6 +326,7 @@ export default class TripPointEditFormView extends AbstractSmartView {
     // первоначальное состояние вьюхи, по сути произвести сброс изменений
     this.updateState(
       TripPointEditFormView.parseTripPointToStateData(tripPoint),
+      false,
     );
   }
 
@@ -346,7 +378,8 @@ export default class TripPointEditFormView extends AbstractSmartView {
     const availableOffers = this._eventTypeToOffersMap.get(this._stateData.type).offers;
     for (let i = 0; i < availableOffers.length; i++) {
       const randomId = nanoid();
-      const checkboxChecked = selectedOffers.includes(availableOffers[i]) ? 'checked' : '';
+      const isAvailableOfferSelected = selectedOffers.some((selectedOffer) => (availableOffers[i].title === selectedOffer.title && availableOffers[i].price === selectedOffer.price));
+      const checkboxChecked = isAvailableOfferSelected ? 'checked' : '';
       const offerTemplate = `<div class="event__offer-selector">
       <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${this._stateData.type}" ${checkboxChecked}>
       <label class="event__offer-label" for="event-offer-${randomId}-1">
@@ -358,7 +391,6 @@ export default class TripPointEditFormView extends AbstractSmartView {
 
       availableOffersOptionsMarkup += offerTemplate;
     }
-
     return availableOffersOptionsMarkup;
   }
 
@@ -368,27 +400,27 @@ export default class TripPointEditFormView extends AbstractSmartView {
   // Тогда при смене радио-кнопки считываем через evt.target.value значение и используем его в качестве ключа,
   // по которому ищем в мапе this._eventTypeToOffersMap доступные для данного типа (ключа) офферы
   // этот приватный метод как раз будет отрисовывать доступные офферы
-  _getAvailableOffersMarkup(eventType) {
-    let availableOffersOptionsMarkup = '<div class="event__available-offers">';
-    const availableOffers = this._eventTypeToOffersMap.get(eventType).offers;
-    for (let i = 0; i < availableOffers.length; i++) {
-      const randomId = nanoid();
-      const offerTemplate = `<div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${this._stateData.type}">
-      <label class="event__offer-label" for="event-offer-${randomId}-1">
-        <span class="event__offer-title">${availableOffers[i].title}</span>
-        &plus;&euro;&nbsp;
-        <span class="event__offer-price">${availableOffers[i].price}</span>
-      </label>
-    </div>`;
-
-      availableOffersOptionsMarkup += offerTemplate;
-    }
-
-    availableOffersOptionsMarkup += '</div>';
-
-    return availableOffersOptionsMarkup;
-  }
+  // _getAvailableOffersMarkup(eventType) {
+  //   let availableOffersOptionsMarkup = '<div class="event__available-offers">';
+  //   const availableOffers = this._eventTypeToOffersMap.get(eventType).offers;
+  //   for (let i = 0; i < availableOffers.length; i++) {
+  //     const randomId = nanoid();
+  //     const offerTemplate = `<div class="event__offer-selector">
+  //     <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${this._stateData.type}">
+  //     <label class="event__offer-label" for="event-offer-${randomId}-1">
+  //       <span class="event__offer-title">${availableOffers[i].title}</span>
+  //       &plus;&euro;&nbsp;
+  //       <span class="event__offer-price">${availableOffers[i].price}</span>
+  //     </label>
+  //   </div>`;
+  //
+  //     availableOffersOptionsMarkup += offerTemplate;
+  //   }
+  //
+  //   availableOffersOptionsMarkup += '</div>';
+  //
+  //   return availableOffersOptionsMarkup;
+  // }
 
   // объявим метод, который будет возвращать разметку раздела Destination
   // эту разметку по аналогии с разметкой доступных офферов будет использовать обработчик смены направления точки маршрута,
