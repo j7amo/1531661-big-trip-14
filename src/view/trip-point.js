@@ -148,7 +148,9 @@ export default class TripPointView extends AbstractView {
   // теперь по аналогии с ранее объявленными методами (приватным _handleClick и публичным setEditClickHandler, которые
   // работаю "в паре") объявим методы для работы с событием клика по Favorite на вьюхе
 
-  // обёртка, которая даёт доп.функционал переданному коллбэку (в данном случае preventDefault)
+  // метод, который мы используем для повышения уровня абстракции и уменьшения связанности кода
+  // получается, что этот метод знает только о том, что ему при наступлении события надо сделать preventDefault
+  // и вызвать переданный извне коллбэк, о котором он ничего не знает
   _handleFavoriteClick(evt) {
     evt.preventDefault();
     this._callback.favoriteClick();
@@ -159,4 +161,31 @@ export default class TripPointView extends AbstractView {
     this._callback.favoriteClick = callback;
     this.getElement().querySelector('.event__favorite-btn').addEventListener('click', this._handleFavoriteClick);
   }
+
+  // static parseTripPointToStateData(tripPoint) {
+  //   return Object.assign(
+  //     {},
+  //     tripPoint,
+  //     {
+  //       // будем подмешивать вложенный объект с состоянием
+  //       state: {
+  //         isFavorite: tripPoint.isFavorite,
+  //       },
+  //     },
+  //   );
+  // }
+  //
+  // static parseStateDataToTripPoint(stateData) {
+  //   stateData = Object.assign({}, stateData);
+  //
+  //   // мы должны изучить состояние вьюхи и на основании этого состояния как-то изменить исходные данные
+  //   // в нашем конкретном случае мы просто считываем значение флага в состоянии (что там накликал юзверь)
+  //   // и передаём его в данные, которые потом уйдут в модель
+  //   stateData.isFavorite = stateData.state.isFavorite;
+  //
+  //   // удаляем "подмешанные" свойства, так как их нет и не должно быть в данных модели
+  //   delete stateData.state;
+  //
+  //   return stateData;
+  // }
 }
