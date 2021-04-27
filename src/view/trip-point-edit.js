@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import AbstractSmartView from './smart-view.js';
 import { nanoid } from 'nanoid';
-//import { createNewElement, replace } from '../utils/render.js';
+import flatpickr from 'flatpickr';
+import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 
 const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDestinationOptionsMarkup, initAvailableOffersMarkup, getDestinationDescriptionMarkup) => {
   const {
@@ -121,7 +122,7 @@ export default class TripPointEditFormView extends AbstractSmartView {
     // точки маршрута принимает аргумент - точку маршрута, то и здесь мы её должны передать
     // UPDATE: так как мы начали работать с состоянием вьюхи, то теперь мы должны изменить пришедшие данные с учётом состояния
     // вьюхи - для этого у нас появился специальный метод
-    this.updateElementMarkup();
+    //this.updateElementMarkup();
     this._callback.formSubmit(TripPointEditFormView.parseStateDataToTripPoint(this._stateData));
   }
 
