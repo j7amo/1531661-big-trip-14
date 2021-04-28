@@ -4,6 +4,12 @@ import { nanoid } from 'nanoid';
 import flatpickr from 'flatpickr';
 import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 
+// заведём константу для datePicker'а
+const DateType = {
+  BEGIN_DATE: 'BEGIN_DATE',
+  END_DATE: 'END_DATE',
+};
+
 const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDestinationOptionsMarkup, initAvailableOffersMarkup, getDestinationDescriptionMarkup) => {
   const {
     price: currentPrice,
@@ -110,8 +116,9 @@ export default class TripPointEditFormView extends AbstractSmartView {
     this._handleEventOffersToggle = this._handleEventOffersToggle.bind(this);
     this._handleDestinationChange = this._handleDestinationChange.bind(this);
 
-    this._initBeginDatePicker = this._initBeginDatePicker.bind(this);
-    this._initEndDatePicker = this._initEndDatePicker.bind(this);
+    // this._initBeginDatePicker = this._initBeginDatePicker.bind(this);
+    // this._initEndDatePicker = this._initEndDatePicker.bind(this);
+    this._initDatePicker = this._initDatePicker.bind(this);
     this._handleBeginDateClick = this._handleBeginDateClick.bind(this);
     this._handleEndDateClick = this._handleEndDateClick.bind(this);
     this._destroyBeginDatePicker = this._destroyBeginDatePicker.bind(this);
@@ -127,20 +134,36 @@ export default class TripPointEditFormView extends AbstractSmartView {
     return createTripPointEditTemplate(this._stateData, this._getEventTypesPickerMarkup, this._getDestinationOptionsMarkup, this._initAvailableOffersMarkup, this._getDestinationDescriptionMarkup);
   }
 
-  _initBeginDatePicker() {
+  // напишем общий метод для инициализации datePicker'а
+  // этот метод будет принимать на вход аргументы, которые определят:
+  // 1) какой пикер инициализировать (для начальной даты / для конечной даты)
+  // 2) на какой DOM-элемент его вешать
+  // 3) какой коллбэк подписывать на его событие onChange
+  _initDatePicker(dateType, elementForPickerAdd, defaultDate, onChangeCallback) {
     // так как datePicker'ы при своей инициализации создают много всяких элементов со своей разметкой / стилями / поведением,
     // нам нужно перед каждой такой инициализацией проверять на предмет того, есть ли уже инициализированный datePicker
     // и если есть, то грохать его и всё, что он сгенерировал (непонятно, правда, почему нельзя использовать уже
     // инициализированный datePicker, но делаю как в демо-проекте Академии)
-    if (this._beginDatePicker) {
-      this._beginDatePicker.destroy();
-      this._beginDatePicker = null;
+    let datePicker;
+
+    switch (dateType) {
+      case DateType.BEGIN_DATE:
+        datePicker = '_beginDatePicker';
+        break;
+      case DateType.END_DATE:
+        datePicker = '_endDatePicker';
+        break;
+    }
+
+    if (this[datePicker]) {
+      this[datePicker].destroy();
+      this[datePicker] = null;
     }
 
     // теперь сама инициализация datePicker'ов
-    this._beginDatePicker = flatpickr(
+    this[datePicker] = flatpickr(
       // согласно API flatpickr первым аргументом мы передаём DOM-элемент, на который мы планируем его "прикрутить"
-      this.getElement().querySelector('input[id = "event-start-time-1"]'),
+      elementForPickerAdd,
       // вторым аргументом передаём объект с настройками самого flatpickr
       {
         // количество одновременно выбираемых дат в одном пикере
@@ -152,41 +175,9 @@ export default class TripPointEditFormView extends AbstractSmartView {
         // формат timePicker'а
         time_24hr: true,
         // задаём дефолтные данные (то, что должно считаться из данных)
-        defaultDate: this._stateData.beginDate,
+        defaultDate: defaultDate,
         // подписываем на событие onChange обработчик, который будет заниматься обновлением даты в состоянии
-        onChange: this._handleBeginDateChange,
-      },
-    );
-  }
-
-  _initEndDatePicker() {
-    // так как datePicker'ы при своей инициализации создают много всяких элементов со своей разметкой / стилями / поведением,
-    // нам нужно перед каждой такой инициализацией проверять на предмет того, есть ли уже инициализированный datePicker
-    // и если есть, то грохать его и всё, что он сгенерировал (непонятно, правда, почему нельзя использовать уже
-    // инициализированный datePicker, но делаю как в демо-проекте Академии)
-    if (this._endDatePicker) {
-      this._endDatePicker.destroy();
-      this._endDatePicker = null;
-    }
-
-    // теперь сама инициализация datePicker'ов
-    this._endDatePicker = flatpickr(
-      // согласно API flatpickr первым аргументом мы передаём DOM-элемент, на который мы планируем его "прикрутить"
-      this.getElement().querySelector('input[id = "event-end-time-1"]'),
-      // вторым аргументом передаём объект с настройками самого flatpickr
-      {
-        // количество одновременно выбираемых дат в одном пикере
-        mode: 'single',
-        // "разрешаем" выбор и отображение времени
-        enableTime: true,
-        // Формат даты, который нам нужен: 25/12/2019 16:00
-        dateFormat: 'd/m/y H:i',
-        // формат timePicker'а
-        time_24hr: true,
-        // задаём дефолтные данные (то, что должно считаться из данных)
-        defaultDate: this._stateData.endDate,
-        // подписываем на событие onChange flatpickr обработчик, который будет заниматься обновлением даты в состоянии
-        onChange: this._handleEndDateChange,
+        onChange: onChangeCallback,
       },
     );
   }
@@ -217,8 +208,9 @@ export default class TripPointEditFormView extends AbstractSmartView {
   // данный метод будет инициализировать соответствующий полю datePicker
   _handleBeginDateClick(evt) {
     evt.preventDefault();
-    this.getElement().querySelector('input[id = "event-start-time-1"]').removeEventListener('click', this._handleBeginDateClick);
-    this._initBeginDatePicker();
+    // this.getElement().querySelector('input[id = "event-start-time-1"]').removeEventListener('click', this._handleBeginDateClick);
+    evt.target.removeEventListener('click', this._handleBeginDateClick);
+    this._initDatePicker(DateType.BEGIN_DATE, evt.target, this._stateData.beginDate, this._handleBeginDateChange);
     this._beginDatePicker.open();
   }
 
@@ -226,7 +218,8 @@ export default class TripPointEditFormView extends AbstractSmartView {
   // данный метод будет инициализировать соответствующий полю datePicker
   _handleEndDateClick(evt) {
     evt.preventDefault();
-    this._initEndDatePicker();
+    evt.target.removeEventListener('click', this._handleEndDateClick);
+    this._initDatePicker(DateType.END_DATE, evt.target, this._stateData.endDate, this._handleEndDateChange);
     this._endDatePicker.open();
   }
 
@@ -255,8 +248,6 @@ export default class TripPointEditFormView extends AbstractSmartView {
   _handleEditClick(evt) {
     evt.preventDefault();
     this._callback.click();
-    this._destroyBeginDatePicker();
-    this._destroyEndDatePicker();
   }
 
   // добавим ещё внутренних обработчиков, которые будут заниматься тем, что будут обрабатывать события, сгенерированные
