@@ -43,4 +43,4 @@ render(tripFiltersElement, new FiltersView(), RenderPosition.BEFOREEND);
 
 // рендерим моки
 const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, tripPointsModel, offersModel, destinationsModel);
-tripBoardPresenter.init(prettyMocks, eventTypeToOffersMap, destinations);
+tripBoardPresenter.init();
