@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import AbstractSmartView from './smart-view.js';
 import { nanoid } from 'nanoid';
-//import { createNewElement, replace } from '../utils/render.js';
+import flatpickr from 'flatpickr';
+import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 
 const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDestinationOptionsMarkup, initAvailableOffersMarkup, getDestinationDescriptionMarkup) => {
   const {
@@ -92,6 +93,9 @@ export default class TripPointEditFormView extends AbstractSmartView {
     this._stateData = TripPointEditFormView.parseTripPointToStateData(tripPoint);
     this._eventTypeToOffersMap = eventTypeToOffersMap;
     this._destinations = destinations;
+    // заводим поле под flatpickr (в конструкторе присваиваем ему null, чтобы он обнулялся при повторном рендеринге всей формы)
+    this._beginDatePicker = null;
+    this._endDatePicker = null;
 
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
     this._handleEditClick = this._handleEditClick.bind(this);
@@ -100,12 +104,20 @@ export default class TripPointEditFormView extends AbstractSmartView {
     this._getDestinationDescriptionMarkup = this._getDestinationDescriptionMarkup.bind(this);
     this._initAvailableOffersMarkup = this._initAvailableOffersMarkup.bind(this);
     this._handlePriceInput = this._handlePriceInput.bind(this);
-    this._handleBeginDateInput = this._handleBeginDateInput.bind(this);
-    this._handleEndDateInput = this._handleEndDateInput.bind(this);
+    this._handleBeginDateChange = this._handleBeginDateChange.bind(this);
+    this._handleEndDateChange = this._handleEndDateChange.bind(this);
     this._handleEventTypeChange = this._handleEventTypeChange.bind(this);
     this._handleEventOffersToggle = this._handleEventOffersToggle.bind(this);
     this._handleDestinationChange = this._handleDestinationChange.bind(this);
 
+    this._initBeginDatePicker = this._initBeginDatePicker.bind(this);
+    this._initEndDatePicker = this._initEndDatePicker.bind(this);
+    this._handleBeginDateClick = this._handleBeginDateClick.bind(this);
+    this._handleEndDateClick = this._handleEndDateClick.bind(this);
+    this._destroyBeginDatePicker = this._destroyBeginDatePicker.bind(this);
+    this._destroyEndDatePicker = this._destroyEndDatePicker.bind(this);
+
+    // не забываем, что при создании нового экземпляра вьюхи мы должны "развесить" внутренние обработчики
     this._setInnerHandlers();
   }
 
@@ -115,19 +127,136 @@ export default class TripPointEditFormView extends AbstractSmartView {
     return createTripPointEditTemplate(this._stateData, this._getEventTypesPickerMarkup, this._getDestinationOptionsMarkup, this._initAvailableOffersMarkup, this._getDestinationDescriptionMarkup);
   }
 
+  _initBeginDatePicker() {
+    // так как datePicker'ы при своей инициализации создают много всяких элементов со своей разметкой / стилями / поведением,
+    // нам нужно перед каждой такой инициализацией проверять на предмет того, есть ли уже инициализированный datePicker
+    // и если есть, то грохать его и всё, что он сгенерировал (непонятно, правда, почему нельзя использовать уже
+    // инициализированный datePicker, но делаю как в демо-проекте Академии)
+    if (this._beginDatePicker) {
+      this._beginDatePicker.destroy();
+      this._beginDatePicker = null;
+    }
+
+    // теперь сама инициализация datePicker'ов
+    this._beginDatePicker = flatpickr(
+      // согласно API flatpickr первым аргументом мы передаём DOM-элемент, на который мы планируем его "прикрутить"
+      this.getElement().querySelector('input[id = "event-start-time-1"]'),
+      // вторым аргументом передаём объект с настройками самого flatpickr
+      {
+        // количество одновременно выбираемых дат в одном пикере
+        mode: 'single',
+        // "разрешаем" выбор и отображение времени
+        enableTime: true,
+        // Формат даты, который нам нужен: 25/12/2019 16:00
+        dateFormat: 'd/m/y H:i',
+        // формат timePicker'а
+        time_24hr: true,
+        // задаём дефолтные данные (то, что должно считаться из данных)
+        defaultDate: this._stateData.beginDate,
+        // подписываем на событие onChange обработчик, который будет заниматься обновлением даты в состоянии
+        onChange: this._handleBeginDateChange,
+      },
+    );
+  }
+
+  _initEndDatePicker() {
+    // так как datePicker'ы при своей инициализации создают много всяких элементов со своей разметкой / стилями / поведением,
+    // нам нужно перед каждой такой инициализацией проверять на предмет того, есть ли уже инициализированный datePicker
+    // и если есть, то грохать его и всё, что он сгенерировал (непонятно, правда, почему нельзя использовать уже
+    // инициализированный datePicker, но делаю как в демо-проекте Академии)
+    if (this._endDatePicker) {
+      this._endDatePicker.destroy();
+      this._endDatePicker = null;
+    }
+
+    // теперь сама инициализация datePicker'ов
+    this._endDatePicker = flatpickr(
+      // согласно API flatpickr первым аргументом мы передаём DOM-элемент, на который мы планируем его "прикрутить"
+      this.getElement().querySelector('input[id = "event-end-time-1"]'),
+      // вторым аргументом передаём объект с настройками самого flatpickr
+      {
+        // количество одновременно выбираемых дат в одном пикере
+        mode: 'single',
+        // "разрешаем" выбор и отображение времени
+        enableTime: true,
+        // Формат даты, который нам нужен: 25/12/2019 16:00
+        dateFormat: 'd/m/y H:i',
+        // формат timePicker'а
+        time_24hr: true,
+        // задаём дефолтные данные (то, что должно считаться из данных)
+        defaultDate: this._stateData.endDate,
+        // подписываем на событие onChange flatpickr обработчик, который будет заниматься обновлением даты в состоянии
+        onChange: this._handleEndDateChange,
+      },
+    );
+  }
+
+  // объявим обработчик ввода начальной даты в точке маршрута
+  // так как теперь событие перехватывает сам flatpickr, то мы эту логику (evt.preventDefault) убираем из нашего
+  // обработчика, но в результате работы flatpickr создаётся по-видимому некий массив с данными и если строго следовать
+  // демо-проекту Академии, то мы нашему обработчику этот массив передаём в качестве аргумента и через деструктуризацию
+  // "выдёргиваем" из этого массива нужные нам данные - ДАТУ
+  _handleBeginDateChange([userDate]) {
+    // при изменении начальной даты НЕ надо полностью перерисовывать вьюху, так как
+    // начальная дата в рамках формы редактирования ни на что не влияет, поэтому передаём флаг localStateUpdate = true
+    this.updateState({
+      beginDate: userDate,
+    }, true);
+  }
+
+  // объявим обработчик ввода конечной даты в точке маршрута
+  _handleEndDateChange([userDate]) {
+    // при изменении конечной даты НЕ надо полностью перерисовывать вьюху, так как
+    // конечная дата в рамках формы редактирования ни на что не влияет, поэтому передаём флаг localStateUpdate = true
+    this.updateState({
+      endDate: userDate,
+    }, true);
+  }
+
+  // объявим метод, который подпишем на клик по полю ввода даты
+  // данный метод будет инициализировать соответствующий полю datePicker
+  _handleBeginDateClick(evt) {
+    evt.preventDefault();
+    this.getElement().querySelector('input[id = "event-start-time-1"]').removeEventListener('click', this._handleBeginDateClick);
+    this._initBeginDatePicker();
+    this._beginDatePicker.open();
+  }
+
+  // объявим метод, который подпишем на клик по полю ввода даты
+  // данный метод будет инициализировать соответствующий полю datePicker
+  _handleEndDateClick(evt) {
+    evt.preventDefault();
+    this._initEndDatePicker();
+    this._endDatePicker.open();
+  }
+
+  // объявим методы, который будет "сносить" datePicker'ы
+  _destroyBeginDatePicker() {
+    this._beginDatePicker.destroy();
+    this._beginDatePicker = null;
+  }
+
+  _destroyEndDatePicker() {
+    this._endDatePicker.destroy();
+    this._endDatePicker = null;
+  }
+
   _handleFormSubmit(evt) {
     evt.preventDefault();
     // корректируем обработчик клика на submit формы: теперь, так как у нас коллбэк, который приходит сюда из презентера
     // точки маршрута принимает аргумент - точку маршрута, то и здесь мы её должны передать
     // UPDATE: так как мы начали работать с состоянием вьюхи, то теперь мы должны изменить пришедшие данные с учётом состояния
     // вьюхи - для этого у нас появился специальный метод
-    this.updateElementMarkup();
     this._callback.formSubmit(TripPointEditFormView.parseStateDataToTripPoint(this._stateData));
+    this._destroyBeginDatePicker();
+    this._destroyEndDatePicker();
   }
 
   _handleEditClick(evt) {
     evt.preventDefault();
     this._callback.click();
+    this._destroyBeginDatePicker();
+    this._destroyEndDatePicker();
   }
 
   // добавим ещё внутренних обработчиков, которые будут заниматься тем, что будут обрабатывать события, сгенерированные
@@ -141,26 +270,6 @@ export default class TripPointEditFormView extends AbstractSmartView {
     // цена в рамках формы редактирования ни на что не влияет, поэтому передаём флаг localStateUpdate = true
     this.updateState({
       price: evt.target.value,
-    }, true);
-  }
-
-  // объявим обработчик ввода начальной даты в точке маршрута
-  _handleBeginDateInput(evt) {
-    evt.preventDefault();
-    // при изменении начальной даты НЕ надо полностью перерисовывать вьюху, так как
-    // начальная дата в рамках формы редактирования ни на что не влияет, поэтому передаём флаг localStateUpdate = true
-    this.updateState({
-      beginDate: evt.target.value,
-    }, true);
-  }
-
-  // объявим обработчик ввода конечной даты в точке маршрута
-  _handleEndDateInput(evt) {
-    evt.preventDefault();
-    // при изменении конечной даты НЕ надо полностью перерисовывать вьюху, так как
-    // конечная дата в рамках формы редактирования ни на что не влияет, поэтому передаём флаг localStateUpdate = true
-    this.updateState({
-      endDate: evt.target.value,
     }, true);
   }
 
@@ -255,8 +364,6 @@ export default class TripPointEditFormView extends AbstractSmartView {
   // это нам также пригодится в сценарии, когда нам нужно будет переподписывать обработчики после перерисовки компонентов
   _setInnerHandlers() {
     this.getElement().querySelector('.event__input--price').addEventListener('change', this._handlePriceInput);
-    this.getElement().querySelector('.event__input--time[name = "event-start-time"]').addEventListener('change', this._handleBeginDateInput);
-    this.getElement().querySelector('.event__input--time[name = "event-end-time"]').addEventListener('change', this._handlePriceInput);
     this.getElement().querySelector('.event__type-group').addEventListener('change', this._handleEventTypeChange);
     this.getElement().querySelector('.event__field-group--destination').addEventListener('change', this._handleDestinationChange);
     // так как при смене типа события было принято решение делать полную перерисовку, а после её наступления мы
@@ -264,12 +371,18 @@ export default class TripPointEditFormView extends AbstractSmartView {
     // осуществить подписку _handleEventOffersToggle на чекбоксы дополнительных офферов
     const availableOffers = this.getElement().querySelectorAll('.event__offer-checkbox');
     availableOffers.forEach((offer) => offer.addEventListener('change', this._handleEventOffersToggle));
+    // для того, чтобы инициализировать flatpickr исключительно по запросу пользователя (таким запросом считаем клик по дате)
+    // нам надо подписать на событие этого самого клика обработчик, который будет инициализировать flatpickr
+    this.getElement().querySelector('input[id = "event-start-time-1"]').addEventListener('click', this._handleBeginDateClick);
+    this.getElement().querySelector('input[id = "event-end-time-1"]').addEventListener('click', this._handleEndDateClick);
   }
 
   // объявим метод, который будет восстанавливать обработчики (как внешние, так и внутренние) после перерисовки
   restoreHandlers() {
     // переподписываем внутренние
     this._setInnerHandlers();
+    // // делаем повторную инициализацию datePicker'а
+    // this._initDatePickers();
     // переподписываем внешние
     this.setFormSubmitHandler(this._callback.formSubmit);
     this.setEditClickHandler(this._callback.click);
@@ -328,6 +441,8 @@ export default class TripPointEditFormView extends AbstractSmartView {
       TripPointEditFormView.parseTripPointToStateData(tripPoint),
       false,
     );
+    this._destroyBeginDatePicker();
+    this._destroyEndDatePicker();
   }
 
   // объявим всякие разные внутренние методы, которые будем использовать в логике работы самой вьюхи:
@@ -393,34 +508,6 @@ export default class TripPointEditFormView extends AbstractSmartView {
     }
     return availableOffersOptionsMarkup;
   }
-
-  // Надо реализовать получение разметки доступных предложений и отрисовку этой самой разметки по клику
-  // на соответствующие радио-кнопки. Это должно происходить с привязкой к чему-то, что гарантированно
-  // позволит идентифицировать текущую радио-кнопку. По идее это её value, так как value в радио-кнопках уникален.
-  // Тогда при смене радио-кнопки считываем через evt.target.value значение и используем его в качестве ключа,
-  // по которому ищем в мапе this._eventTypeToOffersMap доступные для данного типа (ключа) офферы
-  // этот приватный метод как раз будет отрисовывать доступные офферы
-  // _getAvailableOffersMarkup(eventType) {
-  //   let availableOffersOptionsMarkup = '<div class="event__available-offers">';
-  //   const availableOffers = this._eventTypeToOffersMap.get(eventType).offers;
-  //   for (let i = 0; i < availableOffers.length; i++) {
-  //     const randomId = nanoid();
-  //     const offerTemplate = `<div class="event__offer-selector">
-  //     <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${this._stateData.type}">
-  //     <label class="event__offer-label" for="event-offer-${randomId}-1">
-  //       <span class="event__offer-title">${availableOffers[i].title}</span>
-  //       &plus;&euro;&nbsp;
-  //       <span class="event__offer-price">${availableOffers[i].price}</span>
-  //     </label>
-  //   </div>`;
-  //
-  //     availableOffersOptionsMarkup += offerTemplate;
-  //   }
-  //
-  //   availableOffersOptionsMarkup += '</div>';
-  //
-  //   return availableOffersOptionsMarkup;
-  // }
 
   // объявим метод, который будет возвращать разметку раздела Destination
   // эту разметку по аналогии с разметкой доступных офферов будет использовать обработчик смены направления точки маршрута,
