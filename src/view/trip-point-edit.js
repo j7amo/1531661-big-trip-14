@@ -225,13 +225,17 @@ export default class TripPointEditFormView extends AbstractSmartView {
 
   // объявим методы, который будет "сносить" datePicker'ы
   _destroyBeginDatePicker() {
-    this._beginDatePicker.destroy();
-    this._beginDatePicker = null;
+    if (this._beginDatePicker) {
+      this._beginDatePicker.destroy();
+      this._beginDatePicker = null;
+    }
   }
 
   _destroyEndDatePicker() {
-    this._endDatePicker.destroy();
-    this._endDatePicker = null;
+    if (this._endDatePicker) {
+      this._endDatePicker.destroy();
+      this._endDatePicker = null;
+    }
   }
 
   _handleFormSubmit(evt) {

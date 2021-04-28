@@ -3,17 +3,17 @@
 // то нам достаточно для получения этого функционала унаследоваться от этого класса
 import Observer from '../utils/observer';
 
-export default class Offers extends Observer {
+export default class OffersModel extends Observer {
   constructor() {
     super();
-    this._offers = [];
+    this._offers = {};
   }
 
-  setTripPoints(offers) {
-    this._offers = offers.slice();
+  setOffers(offers) {
+    this._offers = Object.assign({}, offers);
   }
 
-  getTripPoints() {
+  getOffers() {
     return this._offers;
   }
 }

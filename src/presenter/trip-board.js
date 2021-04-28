@@ -57,7 +57,7 @@ const EVENT_COUNT = 10;
 
 export default class TripBoardPresenter {
   // конструктор будет получать контейнер, в который будем рендерить саму доску и точки маршрута
-  constructor(tripBoardContainer) {
+  constructor(tripBoardContainer, tripPointsModel, offersModel, destinationsModel) {
     this._tripBoardContainer = tripBoardContainer;
     // при создании экземпляра доски будем сразу создавать view-компоненты для отрисовки:
     // - самой доски;
@@ -90,6 +90,10 @@ export default class TripBoardPresenter {
     this._tripPointPresenters = {};
     // добавим свойство с текущим типом сортировки
     this._currentSortType = SortType.DEFAULT;
+    // добавим свойства, в которых будем хранить ссылки на модели нужных нам структур данных
+    this._tripPointsModel = tripPointsModel;
+    this._offersModel = offersModel;
+    this._destinationsModel = destinationsModel;
     // так как метод _handleTripPointChange мы будем подписывать на событие и в нём есть контекст this, то нужно этот
     // контекст "прибить" к экземпляру текущего класса (TripBoardPresenter)
     this._handleTripPointChange = this._handleTripPointChange.bind(this);
@@ -114,6 +118,19 @@ export default class TripBoardPresenter {
     render(this._tripBoardComponent, this._tripPointsListComponent, RenderPosition.BEFOREEND);
     // 4) отрисуем полезные данные (сортировку и сами точки маршрута) - это инкапсулировано в методе _renderTripBoard
     this._renderTripBoard();
+  }
+
+  // добавим обёртки-геттеры для получения данных из моделей (данные теперь мы НЕ храним в презентерах! Это функция Модели!)
+  _getTripPoints() {
+    this._tripPointsModel.getTripPoints();
+  }
+
+  _getOffers() {
+    this._offersModel.getOffers();
+  }
+
+  _getDestinations() {
+    this._destinationsModel.getDestinations();
   }
 
   // объявим метод обработки события ЛЮБОГО изменения(типа события, направления, дат, цены, доп.предложений) точки маршрута

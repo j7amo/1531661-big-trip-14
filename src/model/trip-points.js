@@ -3,7 +3,7 @@
 // то нам достаточно для получения этого функционала унаследоваться от этого класса
 import Observer from '../utils/observer';
 
-export default class TripPoints extends Observer {
+export default class TripPointsModel extends Observer {
   constructor() {
     super();
     this._tripPoints = [];
