@@ -115,14 +115,12 @@ export default class TripPointEditFormView extends AbstractSmartView {
     this._handleEventTypeChange = this._handleEventTypeChange.bind(this);
     this._handleEventOffersToggle = this._handleEventOffersToggle.bind(this);
     this._handleDestinationChange = this._handleDestinationChange.bind(this);
-
-    // this._initBeginDatePicker = this._initBeginDatePicker.bind(this);
-    // this._initEndDatePicker = this._initEndDatePicker.bind(this);
     this._initDatePicker = this._initDatePicker.bind(this);
     this._handleBeginDateClick = this._handleBeginDateClick.bind(this);
     this._handleEndDateClick = this._handleEndDateClick.bind(this);
     this._destroyBeginDatePicker = this._destroyBeginDatePicker.bind(this);
     this._destroyEndDatePicker = this._destroyEndDatePicker.bind(this);
+    this._handleFormDeleteClick = this._handleFormDeleteClick.bind(this);
 
     // не забываем, что при создании нового экземпляра вьюхи мы должны "развесить" внутренние обработчики
     this._setInnerHandlers();
@@ -254,6 +252,13 @@ export default class TripPointEditFormView extends AbstractSmartView {
     this._callback.click();
   }
 
+  _handleFormDeleteClick(evt) {
+    evt.preventDefault();
+    this._callback.deleteClick(TripPointEditFormView.parseStateDataToTripPoint(this._stateData));
+    this._destroyBeginDatePicker();
+    this._destroyEndDatePicker();
+  }
+
   // добавим ещё внутренних обработчиков, которые будут заниматься тем, что будут обрабатывать события, сгенерированные
   // пользователем на вьюхе, которые изменяют состояние вьюхи, но при этом могут быть в любой момент отменены, если
   // пользователь их не засабмитит
@@ -376,11 +381,10 @@ export default class TripPointEditFormView extends AbstractSmartView {
   restoreHandlers() {
     // переподписываем внутренние
     this._setInnerHandlers();
-    // // делаем повторную инициализацию datePicker'а
-    // this._initDatePickers();
     // переподписываем внешние
     this.setFormSubmitHandler(this._callback.formSubmit);
     this.setEditClickHandler(this._callback.click);
+    this.setFormDeleteClickHandler(this._callback.deleteClick);
   }
 
   setFormSubmitHandler(callback) {
@@ -391,6 +395,11 @@ export default class TripPointEditFormView extends AbstractSmartView {
   setEditClickHandler(callback) {
     this._callback.click = callback;
     this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._handleEditClick);
+  }
+
+  setFormDeleteClickHandler(callback) {
+    this._callback.deleteClick = callback;
+    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._handleFormDeleteClick);
   }
 
   // Начинаем работать С СОСТОЯНИЕМ ВЬЮХ. Состояние вьюхи, если я правильно понял, это некие

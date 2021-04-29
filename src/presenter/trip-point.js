@@ -27,6 +27,7 @@ export default class TripPointPresenter {
     this._handleCardEditClick = this._handleCardEditClick.bind(this);
     this._handleFormEditClick = this._handleFormEditClick.bind(this);
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
+    this._handleFormDeleteClick = this._handleFormDeleteClick.bind(this);
     this._handleEscKeyDown = this._handleEscKeyDown.bind(this);
   }
 
@@ -51,6 +52,7 @@ export default class TripPointPresenter {
     this._tripPointEditFormComponent.setEditClickHandler(this._handleFormEditClick);
     this._tripPointEditFormComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointCardComponent.setFavoriteClickHandler(this._handleFavoritesClick);
+    this._tripPointEditFormComponent.setFormDeleteClickHandler(this._handleFormDeleteClick);
 
     // так как при первой инициализации нам не нужно ОБНОВЛЯТЬ вьюху, а нужно её впервые отрисовать (т.е. вызвать render),
     // то добавляем проверку на null двух ранее упомянутых строк
@@ -135,7 +137,7 @@ export default class TripPointPresenter {
   // - а третий аргумент не меняется, это объект с обновлёнными данными
   _handleFavoritesClick() {
     this._changeData(
-      UserAction.UPDATE_TASK,
+      UserAction.UPDATE_TRIP_POINT,
       UpdateType.MINOR,
       Object.assign(
         {},
@@ -176,10 +178,19 @@ export default class TripPointPresenter {
     // теперь при submit'е формы мы также обновляем данные (предполагается, что пользователь, раз он был в форме
     // редактирования и нажал submit, то он что-то поменял, значит, данные надо обновить
     this._changeData(
-      UserAction.UPDATE_TASK,
+      UserAction.UPDATE_TRIP_POINT,
       UpdateType.MINOR,
       tripPoint,
     );
     this._switchFromFormToCard();
+  }
+
+  // обработчик события click кнопки delete, когда пункт маршрута в представлении формы редактирования
+  _handleFormDeleteClick(tripPoint) {
+    this._changeData(
+      UserAction.DELETE_TRIP_POINT,
+      UpdateType.MINOR,
+      tripPoint,
+    );
   }
 }

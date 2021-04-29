@@ -153,13 +153,13 @@ export default class TripBoardPresenter {
   _handleViewAction(actionType, updateType, update) {
     // делаем вилку вызовов методов модели в зависимости от действий пользователя (у нас их всего 3)
     switch(actionType) {
-      case UserAction.UPDATE_TASK:
+      case UserAction.UPDATE_TRIP_POINT:
         this._tripPointsModel.updateTripPoint(updateType, update);
         break;
-      case UserAction.ADD_TASK:
+      case UserAction.ADD_TRIP_POINT:
         this._tripPointsModel.addTripPoint(updateType, update);
         break;
-      case UserAction.DELETE_TASK:
+      case UserAction.DELETE_TRIP_POINT:
         this._tripPointsModel.deleteTripPoint(updateType, update);
         break;
     }
@@ -304,12 +304,5 @@ export default class TripBoardPresenter {
 
     // отрисуем точки маршрута
     tripPoints.forEach((tripPoint) => this._renderTripPoint(tripPoint/*, this._eventTypeToOffersMap, this._destinations*/));
-  }
-
-  // Метод для очистки списка точек маршрута на базе описанного в презентере метода для "полного" удаления вьюх точки
-  _clearTripPointsList() {
-    Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.destroy());
-    // после того как вьюхи и соответствующую им разметку мы "грохнули", нужно также удалить ссылки на их презентеры
-    this._tripPointPresenters = {};
   }
 }
