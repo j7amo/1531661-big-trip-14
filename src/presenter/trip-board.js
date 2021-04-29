@@ -92,11 +92,16 @@ export default class TripBoardPresenter {
     this._tripPointsModel = tripPointsModel;
     this._offersModel = offersModel;
     this._destinationsModel = destinationsModel;
-    // так как метод _handleTripPointChange мы будем подписывать на событие и в нём есть контекст this, то нужно этот
-    // контекст "прибить" к экземпляру текущего класса (TripBoardPresenter)
-    this._handleTripPointChange = this._handleTripPointChange.bind(this);
+    // "прибиваем" обработчики действий пользователя на вьюхе
+    this._handleViewAction = this._handleViewAction.bind(this);
+    //  и событий модели
+    this._handleModelEvent = this._handleModelEvent.bind(this);
+
     this._handleModeChange = this._handleModeChange.bind(this);
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
+
+    // используем интерфейс модели и подписываем обработчик действий модели на её события
+    this._tripPointsModel.addObserver(this._handleModelEvent);
   }
 
   // далее объявим методы презентера
@@ -133,8 +138,26 @@ export default class TripBoardPresenter {
 
   // объявим метод обработки события ЛЮБОГО изменения(типа события, направления, дат, цены, доп.предложений) точки маршрута
   // Это и есть ИЗМЕНЕНИЕ ДАННЫХ в ответ на действия ПОЛЬЗОВАТЕЛЯ.
-  _handleTripPointChange(updatedTripPoint) {
-    this._tripPointPresenters[updatedTripPoint.id].init(updatedTripPoint/*, this._eventTypeToOffersMap, this._destinations*/);
+  // _handleTripPointChange(updatedTripPoint) {
+  //   this._tripPointPresenters[updatedTripPoint.id].init(updatedTripPoint/*, this._eventTypeToOffersMap, this._destinations*/);
+  // }
+
+  // заменим метод _handleTripPointChange на обработчик ЛЮБОГО пользовательского действия (пока непонятно как это возможно,
+  // слишком абстрактно звучит...)
+  // Что касается параметров метода, то они такие:
+  // actionType - действие пользователя, нужно чтобы понять, какой метод модели вызвать
+  // updateType - тип изменений, нужно чтобы понять, что после нужно обновить
+  // update - обновленные данные для передачи в модель
+  _handleViewAction(actionType, updateType, update) {
+    console.log(actionType, updateType, update);
+  }
+
+  // и по аналогии с методом _handleViewAction объявим метод _handleModelEvent, который будет обрабатывать события
+  // модели, но параметры будут отличаться:
+  // updateType - тип изменений
+  // data - обновленные данные для передачи во вьюхи
+  _handleModelEvent(updateType, data) {
+    console.log(updateType, data);
   }
 
   // объявим метод для обработки изменения режима (просмотр/редактирование точки маршрута)
@@ -188,7 +211,7 @@ export default class TripBoardPresenter {
     // при создании экземпляра презентера точки маршрута будем передавать ему в конструктор метод для обновления данных
     // и метод для обработки изменения режима просмотра/редактирования
     // возможно здесь идёт речь о внедрении зависимости (dependency injection), но это не точно...
-    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent, this._handleTripPointChange, this._handleModeChange);
+    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent, this._handleViewAction, this._handleModeChange);
     tripPointPresenter.init(tripPoint, eventTypeToOffersMap, destinations);
     this._tripPointPresenters[tripPoint.id] = tripPointPresenter;
   }
