@@ -3,7 +3,7 @@ import SortView from '../view/sort.js';
 import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
 import { render, RenderPosition } from '../utils/render.js';
-import { SortType } from '../const.js';
+import { SortType, UserAction, UpdateType } from '../const.js';
 import { sortByDateUp, sortByPriceDown, sortByTimeDown } from '../utils/trip-point.js';
 import TripPointPresenter from './trip-point.js';
 
@@ -151,7 +151,18 @@ export default class TripBoardPresenter {
   // updateType - тип изменений, нужно чтобы понять, что после нужно обновить
   // update - обновленные данные для передачи в модель
   _handleViewAction(actionType, updateType, update) {
-    console.log(actionType, updateType, update);
+    // делаем вилку вызовов методов модели в зависимости от действий пользователя (у нас их всего 3)
+    switch(actionType) {
+      case UserAction.UPDATE_TASK:
+        this._tripPointsModel.updateTripPoint(updateType, update);
+        break;
+      case UserAction.ADD_TASK:
+        this._tripPointsModel.addTripPoint(updateType, update);
+        break;
+      case UserAction.DELETE_TASK:
+        this._tripPointsModel.deleteTripPoint(updateType, update);
+        break;
+    }
   }
 
   // и по аналогии с методом _handleViewAction объявим метод _handleModelEvent, который будет обрабатывать события
@@ -159,7 +170,24 @@ export default class TripBoardPresenter {
   // updateType - тип изменений
   // data - обновленные данные для передачи во вьюхи
   _handleModelEvent(updateType, data) {
-    console.log(updateType, data);
+    // здесь также делаем вилку, но теперь уже это вилка вызовов презентера в зависимости от событий модели
+    // (у нас их всего 3)
+    switch(updateType) {
+      case UpdateType.PATCH:
+        // в данной ветке мы будем делать самое мелкое обновление, а именно обновление какой-то одной точки маршрута
+        // по ID из данных модели находим соответствующий презентер точки маршрута и вызываем у него метод init с новыми
+        // данными (под капотом метод всё, что нужно обновит)
+        this._tripPointPresenters[data.id].init(data);
+        break;
+      case UpdateType.MINOR:
+        // в данной ветке мы будем делать минорное (более крупное чем PATCH) обновление,
+        // а именно обновление всего списка точек маршрута
+        break;
+      case UpdateType.MAJOR:
+        // в данной ветке мы будем делать самое большое мажорное обновление,
+        // а именно обновление всей доски точек маршрута (то есть список точек + сортировка)
+        break;
+    }
   }
 
   // объявим метод для обработки изменения режима (просмотр/редактирование точки маршрута)
