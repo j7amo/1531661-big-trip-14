@@ -25,25 +25,24 @@ const getFixedLengthArrayOfRandomElements = (array, elementsNumber) => {
   return randomElements;
 };
 
-// добавим функцию, которая будет обновлять массив:
-// найдёт в массиве нужный элемент (по id) и заменит его на более свежую версию
-const updateItem = (items, update) => {
-  const index = items.findIndex((item) => item.id === update.id);
-
-  if (index === -1) {
-    return items;
-  }
-
-  return [
-    ...items.slice(0, index),
-    update,
-    ...items.slice(index + 1),
-  ];
-};
+// // добавим функцию, которая будет обновлять массив:
+// // найдёт в массиве нужный элемент (по id) и заменит его на более свежую версию
+// const updateItem = (items, update) => {
+//   const index = items.findIndex((item) => item.id === update.id);
+//
+//   if (index === -1) {
+//     return items;
+//   }
+//
+//   return [
+//     ...items.slice(0, index),
+//     update,
+//     ...items.slice(index + 1),
+//   ];
+// };
 
 export {
   getRandomInt,
   getRandomElement,
   getFixedLengthArrayOfRandomElements,
-  updateItem
 };

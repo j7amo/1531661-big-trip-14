@@ -58,7 +58,7 @@ export default class TripPointsModel extends Observer {
     const index = this._tripPoints.findIndex((tripPoint) => tripPoint.id === update.id);
 
     if (index === -1) {
-      throw new Error('Can\'t update nonexistent trip point');
+      throw new Error('Can\'t delete nonexistent trip point');
     }
 
     this._tripPoints = [
