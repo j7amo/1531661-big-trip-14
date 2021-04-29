@@ -2,7 +2,7 @@ import TripBoardView from '../view/trip-board.js';
 import SortView from '../view/sort.js';
 import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
-import { render, RenderPosition } from '../utils/render.js';
+import {remove, render, RenderPosition} from '../utils/render.js';
 import { SortType, UserAction, UpdateType } from '../const.js';
 import { sortByDateUp, sortByPriceDown, sortByTimeDown } from '../utils/trip-point.js';
 import TripPointPresenter from './trip-point.js';
@@ -64,8 +64,8 @@ export default class TripBoardPresenter {
     // - заглушки, которая будет отображаться на случай отсутствия точек маршрута в принципе.
     // p.s. Что касается ПРЕДСТАВЛЕНИЯ самой поездки, то это оно будет отдельным,
     // так как это самостоятельная единица со своей логикой
+    this._sortComponent = null;
     this._tripBoardComponent = new TripBoardView();
-    this._sortComponent = new SortView();
     this._tripPointsListComponent = new TripPointsListView();
     this._noTripPointsComponent = new NoTripPointsView();
     // для того, чтобы очистить список точек маршрута нам надо удалить из разметки размещённые там вьюхи карточек и форм
@@ -182,11 +182,41 @@ export default class TripBoardPresenter {
       case UpdateType.MINOR:
         // в данной ветке мы будем делать минорное (более крупное чем PATCH) обновление,
         // а именно обновление всего списка точек маршрута
+        this._clearTripBoard();
+        this._renderTripBoard();
         break;
       case UpdateType.MAJOR:
         // в данной ветке мы будем делать самое большое мажорное обновление,
         // а именно обновление всей доски точек маршрута (то есть список точек + сортировка)
+        this._clearTripBoard({ resetSortType: true });
+        this._renderTripBoard();
         break;
+    }
+  }
+
+  // объявим метод очистки доски точек маршрута
+  // он будет уметь не только очищать список точек маршрута (это нужно перед перерисовкой списка), но и при необходимости
+  // сбрасывать в default сортировку
+  // в параметре метода есть хитрость: по умолчанию мы передаём в него пустой объект, через деструктуризацию достаём оттуда
+  // свойство resetSortType (которое по умолчанию undefined, потому что его в принципе нет в пустом объекте)
+  // и тут же по умолчанию присваиваем ему значение false, а если при вызове этого метода мы туда явно передадим объект,
+  // в котором будет resetSortType со значением true, то именно это значение и будет в итоге у этого свойства
+  _clearTripBoard({ resetSortType = false} = {}) {
+    Object
+      // получаем все презентеры точек маршрута
+      .values(this._tripPointPresenters)
+      // у каждого дёргаем метод destroy для полного удаления компонента
+      .forEach((tripPointPresenter) => tripPointPresenter.destroy());
+    // перезаписываем объект, в котором хранились презентеры точек маршрута пустым объектом
+    this._tripPointPresenters = {};
+
+    // удаляем сортировку и заглушку на случай отсутствия точек маршрута в нашем списке
+    remove(this._sortComponent);
+    remove(this._noTripPointsComponent);
+
+    // делаем проверку флага resetSortType и если надо сбрасываем сортировку
+    if (resetSortType) {
+      this._currentSortType = SortType.DEFAULT;
     }
   }
 
@@ -213,9 +243,9 @@ export default class TripBoardPresenter {
     // данных о точках маршрута из их модели)
     this._currentSortType = sortType;
     // 2) производим очистку списка точек маршрута
-    this._clearTripPointsList();
+    this._clearTripBoard({resetSortType: true});
     // 3) отрисовываем по-новой список точек маршрута
-    this._renderTripPointsList();
+    this._renderTripBoard();
     // p.s. В каких-то случаях оптимальнее было бы переставлять DOM-элементы,
     // но в нашем случае со слов авторов курса проще всё грохнуть и тупо перерисовать (думаю, что если бы списки
     // были огромные, то вряд ли это было бы оптимальным решением).
@@ -223,10 +253,17 @@ export default class TripBoardPresenter {
 
   // Метод для рендеринга сортировки
   _renderSort() {
-    render(this._tripBoardComponent, this._sortComponent, RenderPosition.AFTERBEGIN);
+    // добавляем логику, которая позволит нам гарантировать, что у нас на момент создания компонента сортировки
+    // этого самого компонента нет
+    if (this._sortComponent !== null) {
+      this._sortComponent = null;
+    }
+
+    this._sortComponent = new SortView(this._currentSortType);
     // воспользуемся публичным интерфейсом вьюхи сортировки и подпишем коллбэк,
     // в котором будет вся логика сортировки,на клик
     this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
+    render(this._tripBoardComponent, this._sortComponent, RenderPosition.AFTERBEGIN);
   }
 
   // напишем функцию (по аналогии с демонстрационным проектом), которая будет рендерить точку маршрута (по аналогии
@@ -246,10 +283,6 @@ export default class TripBoardPresenter {
     this._tripPointPresenters[tripPoint.id] = tripPointPresenter;
   }
 
-  // Метод для рендеринга всех точек маршрута
-  _renderTripPointsList(tripPoints) {
-    tripPoints.forEach((tripPoint) => this._renderTripPoint(tripPoint/*, this._eventTypeToOffersMap, this._destinations*/));
-  }
 
   // Метод для рендеринга заглушки
   _renderNoTripPoints() {
@@ -258,9 +291,10 @@ export default class TripBoardPresenter {
 
   // Метод для отрисовки "полезной" части доски - сортировки - точек маршрута
   _renderTripBoard() {
+    const tripPoints = this._getTripPoints();
     // отрисуем заглушку на случай, если у нас пока нет ни одной точки маршрута (в ТЗ вроде бы ничего не сказано, надо
     // ли рисовать эту заглушку в случае, когда после применения того или иного фильтра в списке ничего не отображается)
-    if (this._getTripPoints().length === 0) {
+    if (tripPoints.length === 0) {
       this._renderNoTripPoints();
       return;
     }
@@ -269,7 +303,7 @@ export default class TripBoardPresenter {
     this._renderSort();
 
     // отрисуем точки маршрута
-    this._renderTripPointsList();
+    tripPoints.forEach((tripPoint) => this._renderTripPoint(tripPoint/*, this._eventTypeToOffersMap, this._destinations*/));
   }
 
   // Метод для очистки списка точек маршрута на базе описанного в презентере метода для "полного" удаления вьюх точки
