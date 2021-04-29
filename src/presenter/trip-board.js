@@ -100,8 +100,10 @@ export default class TripBoardPresenter {
     this._handleModeChange = this._handleModeChange.bind(this);
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
 
-    // используем интерфейс модели и подписываем обработчик действий модели на её события
+    // используем интерфейс моделей и подписываем обработчики действий моделей на их события
     this._tripPointsModel.addObserver(this._handleModelEvent);
+    this._offersModel.addObserver(this._handleModelEvent);
+    this._destinationsModel.addObserver(this._handleModelEvent);
   }
 
   // далее объявим методы презентера

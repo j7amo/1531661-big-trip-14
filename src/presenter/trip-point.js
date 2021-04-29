@@ -1,6 +1,7 @@
 import TripPointView from '../view/trip-point.js';
 import TripPointEditFormView from '../view/trip-point-edit.js';
 import {remove, render, RenderPosition, replace} from '../utils/render.js';
+import { UserAction, UpdateType } from '../const.js';
 
 // заведём перечисление режимов точек маршрута
 const Mode = {
@@ -125,11 +126,17 @@ export default class TripPointPresenter {
   // изменённых данных обратно во вьюху у нас отвечает метод changeData (это в презентере точки маршрута, в презентере
   // доски - приватный _handleTripPointChange) и мы знаем, что он принимает на вход изменённый объект, то нам надо
   // в обработчике клика по Favorites получить изменённый объект и передать его этому методу (changeData)
+  // UPDATE после 7-го лайва:
+  // теперь метод _changeData это приходящий снаружи (из презентера доски точек маршрута) метод _handleViewAction
+  // у него отличается интерфейс - если раньше мы должны были в него передать только объект точки маршрута
+  // с обновлёнными данными, то теперь он ожидает 3 аргумента:
+  // - тип действия пользователя
+  // - тип обновления
+  // - а третий аргумент не меняется, это объект с обновлёнными данными
   _handleFavoritesClick() {
     this._changeData(
-    // здесь по аналогии с демо-проектом мы будем пользоваться методом Object.assign, который позволяет создать новый
-    // объект и скопировать туда все перечисляемые свойства источников копирования (других объектов)
-    // на лекции говорилось про мутабельность / иммутабельность, но без подробностей
+      UserAction.UPDATE_TASK,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._tripPoint,
@@ -168,7 +175,11 @@ export default class TripPointPresenter {
   _handleFormSubmit(tripPoint) {
     // теперь при submit'е формы мы также обновляем данные (предполагается, что пользователь, раз он был в форме
     // редактирования и нажал submit, то он что-то поменял, значит, данные надо обновить
-    this._changeData(tripPoint);
+    this._changeData(
+      UserAction.UPDATE_TASK,
+      UpdateType.MINOR,
+      tripPoint,
+    );
     this._switchFromFormToCard();
   }
 }
