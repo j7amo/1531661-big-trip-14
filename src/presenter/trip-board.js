@@ -3,6 +3,7 @@ import SortView from '../view/sort.js';
 import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
 import {remove, render, RenderPosition} from '../utils/render.js';
+import { filter } from '../utils/filters.js';
 import { SortType, UserAction, UpdateType } from '../const.js';
 import { sortByDateUp, sortByPriceDown, sortByTimeDown } from '../utils/trip-point.js';
 import TripPointPresenter from './trip-point.js';
@@ -55,7 +56,7 @@ import TripPointPresenter from './trip-point.js';
 
 export default class TripBoardPresenter {
   // конструктор будет получать контейнер, в который будем рендерить саму доску и точки маршрута
-  constructor(tripBoardContainer, tripPointsModel, offersModel, destinationsModel) {
+  constructor(tripBoardContainer, filtersModel, tripPointsModel, offersModel, destinationsModel) {
     this._tripBoardContainer = tripBoardContainer;
     // при создании экземпляра доски будем сразу создавать view-компоненты для отрисовки:
     // - самой доски;
@@ -89,6 +90,7 @@ export default class TripBoardPresenter {
     // добавим свойство с текущим типом сортировки
     this._currentSortType = SortType.DEFAULT;
     // добавим свойства, в которых будем хранить ссылки на модели нужных нам структур данных
+    this._filtersModel = filtersModel;
     this._tripPointsModel = tripPointsModel;
     this._offersModel = offersModel;
     this._destinationsModel = destinationsModel;
@@ -101,6 +103,7 @@ export default class TripBoardPresenter {
     this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
 
     // используем интерфейс моделей и подписываем обработчики действий моделей на их события
+    this._filtersModel.addObserver(this._handleModelEvent);
     this._tripPointsModel.addObserver(this._handleModelEvent);
     this._offersModel.addObserver(this._handleModelEvent);
     this._destinationsModel.addObserver(this._handleModelEvent);
@@ -118,13 +121,17 @@ export default class TripBoardPresenter {
   // также по примеру Академии расширим функционал метода _getTripPoints: пусть он возвращает нам не просто данные в случайном
   // порядке, а в том порядке, который нужен. Для этого дополнительно будем сразу в этом методе сортировать.
   _getTripPoints() {
+    const activeFilter = this._filtersModel.getFilter();
+    const tripPoints = this._tripPointsModel.getTripPoints();
+    const filteredTripPoints = filter[activeFilter](tripPoints);
+
     switch(this._currentSortType) {
       case SortType.DEFAULT:
-        return this._tripPointsModel.getTripPoints().slice().sort(sortByDateUp);
+        return filteredTripPoints.sort(sortByDateUp);
       case SortType.SORT_BY_PRICE_DOWN:
-        return this._tripPointsModel.getTripPoints().slice().sort(sortByPriceDown);
+        return filteredTripPoints.sort(sortByPriceDown);
       case SortType.SORT_BY_TIME_DOWN:
-        return this._tripPointsModel.getTripPoints().slice().sort(sortByTimeDown);
+        return filteredTripPoints.sort(sortByTimeDown);
     }
     // а этот return на случай, если мы хотим получить вообще НЕотсортированные данные
     return this._tripPointsModel.getTripPoints();

@@ -2,7 +2,6 @@ import dayjs from 'dayjs';
 import TripInfoView from './view/trip-info.js';
 import TripCostView from './view/trip-cost.js';
 import SiteMenuView from './view/site-menu';
-import FiltersView from './view/filters.js';
 import TripBoardPresenter from './presenter/trip-board.js';
 import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
 import { render, RenderPosition } from './utils/render.js';
@@ -10,6 +9,7 @@ import TripPointsModel from './model/trip-points';
 import OffersModel from './model/offers';
 import DestinationsModel from './model/destinations';
 import FiltersModel from './model/filters.js';
+import FiltersPresenter from './presenter/filters.js';
 
 const EVENT_COUNT = 10;
 
@@ -17,7 +17,7 @@ const EVENT_COUNT = 10;
 const tripMainElement = document.querySelector('.trip-main');
 const tripInfoElement = tripMainElement.querySelector('.trip-info');
 const tripControlsNavigationElement = tripMainElement.querySelector('.trip-controls__navigation');
-const tripFiltersElement = tripMainElement.querySelector('.trip-controls__filters');
+const filtersContainer = tripMainElement.querySelector('.trip-controls__filters');
 const tripBoardContainer = document.querySelector('.page-main__container');
 
 //генерим  моки
@@ -41,8 +41,9 @@ destinationsModel.setDestinations(destinations);
 render(tripInfoElement, new TripInfoView(tripPointsMocks), RenderPosition.BEFOREEND);
 render(tripInfoElement, new TripCostView(tripPointsMocks), RenderPosition.BEFOREEND);
 render(tripControlsNavigationElement, new SiteMenuView(), RenderPosition.BEFOREEND);
-render(tripFiltersElement, new FiltersView(), RenderPosition.BEFOREEND);
 
 // рендерим моки
-const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, tripPointsModel, offersModel, destinationsModel);
+const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel);
+filtersPresenter.init();
+const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, filtersModel, tripPointsModel, offersModel, destinationsModel);
 tripBoardPresenter.init();
