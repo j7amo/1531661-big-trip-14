@@ -10,7 +10,7 @@ export default class DestinationsModel extends Observer {
   }
 
   setDestinations(destinations) {
-    this._destinations = Object.assign({}, destinations);
+    this._destinations = new Map(destinations);
   }
 
   getDestinations() {

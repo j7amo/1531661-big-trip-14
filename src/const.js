@@ -18,4 +18,11 @@ const UpdateType = {
   MAJOR: 'MAJOR',
 };
 
-export { SortType, UserAction, UpdateType };
+// добавим перечисление для типов фильтров
+const FilterType = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future',
+  PAST: 'past',
+};
+
+export { SortType, UserAction, UpdateType, FilterType };

@@ -9,6 +9,7 @@ import { render, RenderPosition } from './utils/render.js';
 import TripPointsModel from './model/trip-points';
 import OffersModel from './model/offers';
 import DestinationsModel from './model/destinations';
+import FiltersModel from './model/filters.js';
 
 const EVENT_COUNT = 10;
 
@@ -29,6 +30,7 @@ const prettyMocks = Array.from(tripPointsMocks.values()).sort((firstTripPoint, s
 const tripPointsModel = new TripPointsModel();
 const offersModel = new OffersModel();
 const destinationsModel = new DestinationsModel();
+const filtersModel = new FiltersModel();
 
 // теперь у нас есть модели, но они пустые, поэтому воспользуемся их интерфейсами для инициализации данных
 tripPointsModel.setTripPoints(prettyMocks);

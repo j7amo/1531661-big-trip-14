@@ -10,7 +10,7 @@ export default class OffersModel extends Observer {
   }
 
   setOffers(offers) {
-    this._offers = Object.assign({}, offers);
+    this._offers = new Map(offers);
   }
 
   getOffers() {

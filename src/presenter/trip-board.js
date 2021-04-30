@@ -292,6 +292,8 @@ export default class TripBoardPresenter {
   // Метод для отрисовки "полезной" части доски - сортировки - точек маршрута
   _renderTripBoard() {
     const tripPoints = this._getTripPoints();
+    const eventOffers = this._getOffers();
+    const destinations = this._getDestinations();
     // отрисуем заглушку на случай, если у нас пока нет ни одной точки маршрута (в ТЗ вроде бы ничего не сказано, надо
     // ли рисовать эту заглушку в случае, когда после применения того или иного фильтра в списке ничего не отображается)
     if (tripPoints.length === 0) {
@@ -303,6 +305,6 @@ export default class TripBoardPresenter {
     this._renderSort();
 
     // отрисуем точки маршрута
-    tripPoints.forEach((tripPoint) => this._renderTripPoint(tripPoint/*, this._eventTypeToOffersMap, this._destinations*/));
+    tripPoints.forEach((tripPoint) => this._renderTripPoint(tripPoint, eventOffers, destinations));
   }
 }
