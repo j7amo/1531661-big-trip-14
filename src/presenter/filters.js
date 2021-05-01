@@ -3,9 +3,10 @@ import { UpdateType } from '../const.js';
 import FiltersView from '../view/filters.js';
 
 export default class FiltersPresenter {
-  constructor(filtersContainer, filtersModel) {
+  constructor(filtersContainer, filtersModel, sortModel) {
     this._filtersContainer = filtersContainer;
     this._filtersModel = filtersModel;
+    this._sortModel = sortModel;
     this._filtersComponent = null;
 
     this._handleModelEvent = this._handleModelEvent.bind(this);
@@ -36,7 +37,12 @@ export default class FiltersPresenter {
     if (this._filtersModel.getFilter() === activeFilter) {
       return;
     }
-
+    // при изменении фильтра передаём тип апдейта, чтобы система понимала насколько сильно надо обновить доску
+    // PATCH - обновление одной точки маршрута
+    // MINOR - обновление всего списка точек маршрута
+    // MAJOR - обновление всей доски (список + сортировка)
+    // Почему передаём MAJOR? Потому что по ТЗ при смене фильтров должна сбрасываться сортировка!
     this._filtersModel.setFilter(UpdateType.MAJOR, activeFilter);
+    this._sortModel.setSort(UpdateType.MAJOR, null, true);
   }
 }

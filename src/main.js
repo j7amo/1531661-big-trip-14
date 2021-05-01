@@ -10,6 +10,7 @@ import OffersModel from './model/offers';
 import DestinationsModel from './model/destinations';
 import FiltersModel from './model/filters.js';
 import FiltersPresenter from './presenter/filters.js';
+import SortModel from './model/sort.js';
 
 const EVENT_COUNT = 10;
 
@@ -31,6 +32,7 @@ const tripPointsModel = new TripPointsModel();
 const offersModel = new OffersModel();
 const destinationsModel = new DestinationsModel();
 const filtersModel = new FiltersModel();
+const sortModel = new SortModel();
 
 // теперь у нас есть модели, но они пустые, поэтому воспользуемся их интерфейсами для инициализации данных
 tripPointsModel.setTripPoints(prettyMocks);
@@ -43,7 +45,7 @@ render(tripInfoElement, new TripCostView(tripPointsMocks), RenderPosition.BEFORE
 render(tripControlsNavigationElement, new SiteMenuView(), RenderPosition.BEFOREEND);
 
 // рендерим моки
-const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel);
+const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel);
 filtersPresenter.init();
-const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, filtersModel, tripPointsModel, offersModel, destinationsModel);
+const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel);
 tripBoardPresenter.init();

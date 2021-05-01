@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { SortType } from '../const.js';
 // на данном этапе (после 5-го лайва) пока непонятно какие функции/методы нам в итоге будут нужны для личных проектов,
 // а какие специфичны только для демо-проекта, поэтому фигачим всё подряд по аналогии с демо-проектом, если что - лишнее уберём
 
@@ -88,8 +89,10 @@ const sortByTimeDown = (tripPointA, tripPointB) => {
   return dayjs(tripPointA.beginDate).diff(dayjs(tripPointA.endDate)) - dayjs(tripPointB.beginDate).diff(dayjs(tripPointB.endDate));
 };
 
-export {
-  sortByDateUp,
-  sortByPriceDown,
-  sortByTimeDown
+const sort = {
+  [SortType.DEFAULT]: sortByDateUp,
+  [SortType.SORT_BY_TIME_DOWN]: sortByTimeDown,
+  [SortType.SORT_BY_PRICE_DOWN]: sortByPriceDown,
 };
+
+export { sort };

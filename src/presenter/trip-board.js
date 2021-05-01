@@ -1,12 +1,12 @@
 import TripBoardView from '../view/trip-board.js';
-import SortView from '../view/sort.js';
 import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
 import {remove, render, RenderPosition} from '../utils/render.js';
-import { filter } from '../utils/filters.js';
-import { SortType, UserAction, UpdateType } from '../const.js';
-import { sortByDateUp, sortByPriceDown, sortByTimeDown } from '../utils/trip-point.js';
+import {filter} from '../utils/filters.js';
+import { UpdateType, UserAction} from '../const.js';
+import {sort} from '../utils/sort.js';
 import TripPointPresenter from './trip-point.js';
+import SortPresenter from './sort.js';
 
 // Общая концепция паттерна MVP, если я правильно понимаю, заключается в следующем:
 // ============================
@@ -56,7 +56,7 @@ import TripPointPresenter from './trip-point.js';
 
 export default class TripBoardPresenter {
   // конструктор будет получать контейнер, в который будем рендерить саму доску и точки маршрута
-  constructor(tripBoardContainer, filtersModel, tripPointsModel, offersModel, destinationsModel) {
+  constructor(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel) {
     this._tripBoardContainer = tripBoardContainer;
     // при создании экземпляра доски будем сразу создавать view-компоненты для отрисовки:
     // - самой доски;
@@ -65,7 +65,7 @@ export default class TripBoardPresenter {
     // - заглушки, которая будет отображаться на случай отсутствия точек маршрута в принципе.
     // p.s. Что касается ПРЕДСТАВЛЕНИЯ самой поездки, то это оно будет отдельным,
     // так как это самостоятельная единица со своей логикой
-    this._sortComponent = null;
+    //this._sortComponent = null;
     this._tripBoardComponent = new TripBoardView();
     this._tripPointsListComponent = new TripPointsListView();
     this._noTripPointsComponent = new NoTripPointsView();
@@ -87,10 +87,12 @@ export default class TripBoardPresenter {
     // где ключ - id точки маршрута, значение - объект презентера. На этапе создания экземпляра презентера доски
     // это буде пустой объект, который мы будем "наполнять" в методе "_renderTripPoint"
     this._tripPointPresenters = {};
+    this._sortPresenters = [];
     // добавим свойство с текущим типом сортировки
-    this._currentSortType = SortType.DEFAULT;
+    //this._currentSortType = SortType.DEFAULT;
     // добавим свойства, в которых будем хранить ссылки на модели нужных нам структур данных
     this._filtersModel = filtersModel;
+    this._sortModel = sortModel;
     this._tripPointsModel = tripPointsModel;
     this._offersModel = offersModel;
     this._destinationsModel = destinationsModel;
@@ -100,10 +102,11 @@ export default class TripBoardPresenter {
     this._handleModelEvent = this._handleModelEvent.bind(this);
 
     this._handleModeChange = this._handleModeChange.bind(this);
-    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
+    //this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
 
     // используем интерфейс моделей и подписываем обработчики действий моделей на их события
     this._filtersModel.addObserver(this._handleModelEvent);
+    this._sortModel.addObserver(this._handleModelEvent);
     this._tripPointsModel.addObserver(this._handleModelEvent);
     this._offersModel.addObserver(this._handleModelEvent);
     this._destinationsModel.addObserver(this._handleModelEvent);
@@ -122,19 +125,11 @@ export default class TripBoardPresenter {
   // порядке, а в том порядке, который нужен. Для этого дополнительно будем сразу в этом методе сортировать.
   _getTripPoints() {
     const activeFilter = this._filtersModel.getFilter();
+    const activeSort = this._sortModel.getSort();
     const tripPoints = this._tripPointsModel.getTripPoints();
     const filteredTripPoints = filter[activeFilter](tripPoints);
 
-    switch(this._currentSortType) {
-      case SortType.DEFAULT:
-        return filteredTripPoints.sort(sortByDateUp);
-      case SortType.SORT_BY_PRICE_DOWN:
-        return filteredTripPoints.sort(sortByPriceDown);
-      case SortType.SORT_BY_TIME_DOWN:
-        return filteredTripPoints.sort(sortByTimeDown);
-    }
-    // а этот return на случай, если мы хотим получить вообще НЕотсортированные данные
-    return this._tripPointsModel.getTripPoints();
+    return filteredTripPoints.sort(sort[activeSort]);
   }
 
   _getOffers() {
@@ -176,6 +171,7 @@ export default class TripBoardPresenter {
   // модели, но параметры будут отличаться:
   // updateType - тип изменений
   // data - обновленные данные для передачи во вьюхи
+  //_handleModelEvent(updateType, data, resetSort) {
   _handleModelEvent(updateType, data) {
     // здесь также делаем вилку, но теперь уже это вилка вызовов презентера в зависимости от событий модели
     // (у нас их всего 3)
@@ -195,11 +191,17 @@ export default class TripBoardPresenter {
       case UpdateType.MAJOR:
         // в данной ветке мы будем делать самое большое мажорное обновление,
         // а именно обновление всей доски точек маршрута (то есть список точек + сортировка)
-        this._clearTripBoard({ resetSortType: true });
+        this._clearTripBoard(/*{ resetSortType: true }*/);
         this._renderTripBoard();
         break;
     }
   }
+
+  // Смена фильтра вызывает major-обновление => происходит полная перерисовка доски
+  // Смена сортировки вызывает major-обновление => происходит полная перерисовка доски
+  // Как сделать так, чтобы при смене фильтра дополнительно происходил сброс сортировки?
+  // Так как сортировка должна сбрасываться не только при смене фильтра, но и при других глобальных событиях,
+  // то ничего не остаётся как сделать её сброс при каждом major-обновлении
 
   // объявим метод очистки доски точек маршрута
   // он будет уметь не только очищать список точек маршрута (это нужно перед перерисовкой списка), но и при необходимости
@@ -208,23 +210,13 @@ export default class TripBoardPresenter {
   // свойство resetSortType (которое по умолчанию undefined, потому что его в принципе нет в пустом объекте)
   // и тут же по умолчанию присваиваем ему значение false, а если при вызове этого метода мы туда явно передадим объект,
   // в котором будет resetSortType со значением true, то именно это значение и будет в итоге у этого свойства
-  _clearTripBoard({ resetSortType = false} = {}) {
-    Object
-      // получаем все презентеры точек маршрута
-      .values(this._tripPointPresenters)
-      // у каждого дёргаем метод destroy для полного удаления компонента
-      .forEach((tripPointPresenter) => tripPointPresenter.destroy());
+  _clearTripBoard() {
+    Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.destroy());
     // перезаписываем объект, в котором хранились презентеры точек маршрута пустым объектом
     this._tripPointPresenters = {};
-
-    // удаляем сортировку и заглушку на случай отсутствия точек маршрута в нашем списке
-    remove(this._sortComponent);
+    this._sortPresenters.forEach((sortPresenter) => sortPresenter.destroy());
+    this._sortPresenters = [];
     remove(this._noTripPointsComponent);
-
-    // делаем проверку флага resetSortType и если надо сбрасываем сортировку
-    if (resetSortType) {
-      this._currentSortType = SortType.DEFAULT;
-    }
   }
 
   // объявим метод для обработки изменения режима (просмотр/редактирование точки маршрута)
@@ -236,41 +228,11 @@ export default class TripBoardPresenter {
     Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.resetView());
   }
 
-  // объявим метод для обработки события смены сортировки списка точек маршрута
-  // метод должен быть приватным, так как мы будем передавать его в качестве коллбэка для подписки на клик во вьюхе сортировки
-  _handleSortTypeChange(sortType) {
-    // сделаем проверку на случай, если у нас текущая сортировка соответствует выбираемой пользователем
-    // и в этом случае НЕ будем ничего делать - зачем нам лишняя перерисовка?
-    if (this._currentSortType === sortType) {
-      return;
-    }
-
-    // теперь при наступлении события выбора сортировки пользователем в случае, если сортировка отличается от текущей
-    // 1) присваиваем новое значение сортировки соответствующему свойству презентера (это значение понадобится при получении
-    // данных о точках маршрута из их модели)
-    this._currentSortType = sortType;
-    // 2) производим очистку списка точек маршрута
-    this._clearTripBoard({resetSortType: true});
-    // 3) отрисовываем по-новой список точек маршрута
-    this._renderTripBoard();
-    // p.s. В каких-то случаях оптимальнее было бы переставлять DOM-элементы,
-    // но в нашем случае со слов авторов курса проще всё грохнуть и тупо перерисовать (думаю, что если бы списки
-    // были огромные, то вряд ли это было бы оптимальным решением).
-  }
-
   // Метод для рендеринга сортировки
   _renderSort() {
-    // добавляем логику, которая позволит нам гарантировать, что у нас на момент создания компонента сортировки
-    // этого самого компонента нет
-    if (this._sortComponent !== null) {
-      this._sortComponent = null;
-    }
-
-    this._sortComponent = new SortView(this._currentSortType);
-    // воспользуемся публичным интерфейсом вьюхи сортировки и подпишем коллбэк,
-    // в котором будет вся логика сортировки,на клик
-    this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
-    render(this._tripBoardComponent, this._sortComponent, RenderPosition.AFTERBEGIN);
+    const sortPresenter = new SortPresenter(this._tripBoardComponent, this._sortModel);
+    this._sortPresenters.push(sortPresenter);
+    sortPresenter.init();
   }
 
   // напишем функцию (по аналогии с демонстрационным проектом), которая будет рендерить точку маршрута (по аналогии
