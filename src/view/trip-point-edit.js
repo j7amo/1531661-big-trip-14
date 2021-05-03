@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import he from 'he';
 import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 import AbstractForm from './abstract-form.js';
 
@@ -38,7 +39,7 @@ const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDe
           <label class="event__label  event__type-output" for="event-destination-1">
             ${currentType}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination ? currentDestination.name : ''}" list="destination-list-1">
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination ? he.encode(currentDestination.name) : ''}" list="destination-list-1">
           <datalist id="destination-list-1">
             ${getDestinationOptionsMarkup()}
           </datalist>
