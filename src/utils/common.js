@@ -44,5 +44,5 @@ const getFixedLengthArrayOfRandomElements = (array, elementsNumber) => {
 export {
   getRandomInt,
   getRandomElement,
-  getFixedLengthArrayOfRandomElements,
+  getFixedLengthArrayOfRandomElements
 };

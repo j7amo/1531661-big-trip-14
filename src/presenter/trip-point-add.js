@@ -46,7 +46,6 @@ export default class TripPointAddPresenter {
   }
 
   _handleFormCancelClick() {
-    console.log('_handleFormCancelClick triggered');
     this.destroy();
   }
 
