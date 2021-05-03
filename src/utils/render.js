@@ -56,6 +56,11 @@ const replace = (newChild, oldChild) => {
 
 // также заведём метод remove, который будет полностью (и DOM-элемент, и связанный с ним экземпляр класса) удалять компоненты
 const remove = (component) => {
+  // сделаем проверку на случай, если попытаемся удалить компонент, который null
+  if (component === null) {
+    return;
+  }
+
   if (!(component instanceof Abstract)) {
     throw new Error('Can only remove components!');
   }

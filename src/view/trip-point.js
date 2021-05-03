@@ -17,34 +17,36 @@ const createTripPointTemplate = (tripPointData) => {
     type,
   } = tripPointData;
 
-  const beginDateYearMonthDayFormatted = dayjs(beginDate).format('YYYY-MM-DD');
-  const beginDateMonthDayFormatted = dayjs(beginDate).format('MMM DD');
-  const beginFullDateWithTimeFormatted = dayjs(beginDate).format('YYYY-MM-DDTHH:mm');
-  const beginDateTimeFormatted = dayjs(beginDate).format('HH-mm');
-  const endFullDateWithTimeFormatted = dayjs(endDate).format('YYYY-MM-DDTHH:mm');
-  const endDateTimeFormatted = dayjs(endDate).format('HH-mm');
-  const eventDuration = dayjs(endDate).diff(dayjs(beginDate), 'minute');
+  const beginDateYearMonthDayFormatted = beginDate ? dayjs(beginDate).format('YYYY-MM-DD') : '';
+  const beginDateMonthDayFormatted = beginDate ? dayjs(beginDate).format('MMM DD') : '';
+  const beginFullDateWithTimeFormatted = beginDate ? dayjs(beginDate).format('YYYY-MM-DDTHH:mm') : '';
+  const beginDateTimeFormatted = beginDate ? dayjs(beginDate).format('HH-mm') : '';
+  const endFullDateWithTimeFormatted = endDate ? dayjs(endDate).format('YYYY-MM-DDTHH:mm') : '';
+  const endDateTimeFormatted = endDate ? dayjs(endDate).format('HH-mm') : '';
+  const eventDuration = (beginDate && endDate) ? dayjs(endDate).diff(dayjs(beginDate), 'minute') : '';
 
   let eventDurationFormatted;
 
-  if (eventDuration >= MINUTES_IN_DAY) {
-    const fullDays = Math.floor(eventDuration / MINUTES_IN_DAY);
-    const fullHours = Math.floor((eventDuration - fullDays * MINUTES_IN_DAY) / MINUTES_IN_HOUR);
-    const fullMinutes = eventDuration - fullDays * MINUTES_IN_DAY - fullHours * MINUTES_IN_HOUR;
-    const fullDaysFormatted = (fullDays > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullDays}` : `0${fullDays}`;
-    const fullHoursFormatted = (fullHours > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullHours}` : `0${fullHours}`;
-    const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
-    eventDurationFormatted = `${fullDaysFormatted}D ${fullHoursFormatted}H ${fullMinutesFormatted}M`;
-  } else if (eventDuration < MINUTES_IN_DAY && eventDuration >= MINUTES_IN_HOUR) {
-    const fullHours = Math.floor(eventDuration / MINUTES_IN_HOUR);
-    const fullMinutes = eventDuration - fullHours * MINUTES_IN_HOUR;
-    const fullHoursFormatted = (fullHours > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullHours}` : `0${fullHours}`;
-    const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
-    eventDurationFormatted = `${fullHoursFormatted}H ${fullMinutesFormatted}M`;
-  } else {
-    const fullMinutes = eventDuration;
-    const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
-    eventDurationFormatted = `${fullMinutesFormatted}M`;
+  if (eventDuration) {
+    if (eventDuration >= MINUTES_IN_DAY) {
+      const fullDays = Math.floor(eventDuration / MINUTES_IN_DAY);
+      const fullHours = Math.floor((eventDuration - fullDays * MINUTES_IN_DAY) / MINUTES_IN_HOUR);
+      const fullMinutes = eventDuration - fullDays * MINUTES_IN_DAY - fullHours * MINUTES_IN_HOUR;
+      const fullDaysFormatted = (fullDays > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullDays}` : `0${fullDays}`;
+      const fullHoursFormatted = (fullHours > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullHours}` : `0${fullHours}`;
+      const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
+      eventDurationFormatted = `${fullDaysFormatted}D ${fullHoursFormatted}H ${fullMinutesFormatted}M`;
+    } else if (eventDuration < MINUTES_IN_DAY && eventDuration >= MINUTES_IN_HOUR) {
+      const fullHours = Math.floor(eventDuration / MINUTES_IN_HOUR);
+      const fullMinutes = eventDuration - fullHours * MINUTES_IN_HOUR;
+      const fullHoursFormatted = (fullHours > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullHours}` : `0${fullHours}`;
+      const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
+      eventDurationFormatted = `${fullHoursFormatted}H ${fullMinutesFormatted}M`;
+    } else {
+      const fullMinutes = eventDuration;
+      const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
+      eventDurationFormatted = `${fullMinutesFormatted}M`;
+    }
   }
 
   let listOfOffers = '';
@@ -66,17 +68,17 @@ const createTripPointTemplate = (tripPointData) => {
       <div class="event__type">
         <img class="event__type-icon" width="42" height="42" src="img/icons/${type}.png" alt="Event type icon">
       </div>
-      <h3 class="event__title">${type} ${destination.name}</h3>
+      <h3 class="event__title">${type} ${destination ? destination.name : ''}</h3>
       <div class="event__schedule">
         <p class="event__time">
           <time class="event__start-time" datetime="${beginFullDateWithTimeFormatted}">${beginDateTimeFormatted}</time>
           &mdash;
           <time class="event__end-time" datetime="${endFullDateWithTimeFormatted}">${endDateTimeFormatted}</time>
         </p>
-        <p class="event__duration">${eventDurationFormatted}</p>
+        <p class="event__duration">${eventDurationFormatted ? eventDurationFormatted : ''}</p>
       </div>
       <p class="event__price">
-        &euro;&nbsp;<span class="event__price-value">${price}</span>
+        &euro;&nbsp;<span class="event__price-value">${price ? price : ''}</span>
       </p>
       <h4 class="visually-hidden">Offers:</h4>
       <ul class="event__selected-offers">${listOfOffers}</ul>

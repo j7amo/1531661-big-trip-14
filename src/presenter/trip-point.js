@@ -1,6 +1,7 @@
 import TripPointView from '../view/trip-point.js';
 import TripPointEditFormView from '../view/trip-point-edit.js';
 import {remove, render, RenderPosition, replace} from '../utils/render.js';
+import { UserAction, UpdateType } from '../const.js';
 
 // заведём перечисление режимов точек маршрута
 const Mode = {
@@ -26,6 +27,7 @@ export default class TripPointPresenter {
     this._handleCardEditClick = this._handleCardEditClick.bind(this);
     this._handleFormEditClick = this._handleFormEditClick.bind(this);
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
+    this._handleFormDeleteClick = this._handleFormDeleteClick.bind(this);
     this._handleEscKeyDown = this._handleEscKeyDown.bind(this);
   }
 
@@ -50,6 +52,7 @@ export default class TripPointPresenter {
     this._tripPointEditFormComponent.setEditClickHandler(this._handleFormEditClick);
     this._tripPointEditFormComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointCardComponent.setFavoriteClickHandler(this._handleFavoritesClick);
+    this._tripPointEditFormComponent.setFormDeleteClickHandler(this._handleFormDeleteClick);
 
     // так как при первой инициализации нам не нужно ОБНОВЛЯТЬ вьюху, а нужно её впервые отрисовать (т.е. вызвать render),
     // то добавляем проверку на null двух ранее упомянутых строк
@@ -125,11 +128,17 @@ export default class TripPointPresenter {
   // изменённых данных обратно во вьюху у нас отвечает метод changeData (это в презентере точки маршрута, в презентере
   // доски - приватный _handleTripPointChange) и мы знаем, что он принимает на вход изменённый объект, то нам надо
   // в обработчике клика по Favorites получить изменённый объект и передать его этому методу (changeData)
+  // UPDATE после 7-го лайва:
+  // теперь метод _changeData это приходящий снаружи (из презентера доски точек маршрута) метод _handleViewAction
+  // у него отличается интерфейс - если раньше мы должны были в него передать только объект точки маршрута
+  // с обновлёнными данными, то теперь он ожидает 3 аргумента:
+  // - тип действия пользователя
+  // - тип обновления
+  // - а третий аргумент не меняется, это объект с обновлёнными данными
   _handleFavoritesClick() {
     this._changeData(
-    // здесь по аналогии с демо-проектом мы будем пользоваться методом Object.assign, который позволяет создать новый
-    // объект и скопировать туда все перечисляемые свойства источников копирования (других объектов)
-    // на лекции говорилось про мутабельность / иммутабельность, но без подробностей
+      UserAction.UPDATE_TRIP_POINT,
+      UpdateType.MINOR,
       Object.assign(
         {},
         this._tripPoint,
@@ -168,7 +177,20 @@ export default class TripPointPresenter {
   _handleFormSubmit(tripPoint) {
     // теперь при submit'е формы мы также обновляем данные (предполагается, что пользователь, раз он был в форме
     // редактирования и нажал submit, то он что-то поменял, значит, данные надо обновить
-    this._changeData(tripPoint);
+    this._changeData(
+      UserAction.UPDATE_TRIP_POINT,
+      UpdateType.MINOR,
+      tripPoint,
+    );
     this._switchFromFormToCard();
+  }
+
+  // обработчик события click кнопки delete, когда пункт маршрута в представлении формы редактирования
+  _handleFormDeleteClick(tripPoint) {
+    this._changeData(
+      UserAction.DELETE_TRIP_POINT,
+      UpdateType.MINOR,
+      tripPoint,
+    );
   }
 }

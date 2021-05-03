@@ -1,12 +1,13 @@
 import TripBoardView from '../view/trip-board.js';
-import SortView from '../view/sort.js';
 import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
-import { updateItem } from '../utils/common.js';
-import { render, RenderPosition } from '../utils/render.js';
-import { SortType } from '../const.js';
-import { sortByDateUp, sortByPriceDown, sortByTimeDown } from '../utils/trip-point.js';
+import {remove, render, RenderPosition} from '../utils/render.js';
+import {filter} from '../utils/filters.js';
+import {FilterType, UpdateType, UserAction} from '../const.js';
+import {sort} from '../utils/sort.js';
 import TripPointPresenter from './trip-point.js';
+import SortPresenter from './sort.js';
+import TripPointAddPresenter from './trip-point-add.js';
 
 // Общая концепция паттерна MVP, если я правильно понимаю, заключается в следующем:
 // ============================
@@ -53,11 +54,10 @@ import TripPointPresenter from './trip-point.js';
 // ========================================
 // И это только пока описана работа по "маршруту" МОДЕЛЬ - ПРЕЗЕНТЕР - ПРЕДСТАВЛЕНИЕ.
 // По сути речь идёт о реализации бизнес-логики нашего приложения.
-const EVENT_COUNT = 10;
 
 export default class TripBoardPresenter {
   // конструктор будет получать контейнер, в который будем рендерить саму доску и точки маршрута
-  constructor(tripBoardContainer) {
+  constructor(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel) {
     this._tripBoardContainer = tripBoardContainer;
     // при создании экземпляра доски будем сразу создавать view-компоненты для отрисовки:
     // - самой доски;
@@ -66,8 +66,8 @@ export default class TripBoardPresenter {
     // - заглушки, которая будет отображаться на случай отсутствия точек маршрута в принципе.
     // p.s. Что касается ПРЕДСТАВЛЕНИЯ самой поездки, то это оно будет отдельным,
     // так как это самостоятельная единица со своей логикой
+    //this._sortComponent = null;
     this._tripBoardComponent = new TripBoardView();
-    this._sortComponent = new SortView();
     this._tripPointsListComponent = new TripPointsListView();
     this._noTripPointsComponent = new NoTripPointsView();
     // для того, чтобы очистить список точек маршрута нам надо удалить из разметки размещённые там вьюхи карточек и форм
@@ -88,45 +88,139 @@ export default class TripBoardPresenter {
     // где ключ - id точки маршрута, значение - объект презентера. На этапе создания экземпляра презентера доски
     // это буде пустой объект, который мы будем "наполнять" в методе "_renderTripPoint"
     this._tripPointPresenters = {};
+    this._sortPresenters = [];
     // добавим свойство с текущим типом сортировки
-    this._currentSortType = SortType.DEFAULT;
-    // так как метод _handleTripPointChange мы будем подписывать на событие и в нём есть контекст this, то нужно этот
-    // контекст "прибить" к экземпляру текущего класса (TripBoardPresenter)
-    this._handleTripPointChange = this._handleTripPointChange.bind(this);
+    //this._currentSortType = SortType.DEFAULT;
+    // добавим свойства, в которых будем хранить ссылки на модели нужных нам структур данных
+    this._filtersModel = filtersModel;
+    this._sortModel = sortModel;
+    this._tripPointsModel = tripPointsModel;
+    this._offersModel = offersModel;
+    this._destinationsModel = destinationsModel;
+    // "прибиваем" обработчики действий пользователя на вьюхе
+    this._handleViewAction = this._handleViewAction.bind(this);
+    //  и событий модели
+    this._handleModelEvent = this._handleModelEvent.bind(this);
+
     this._handleModeChange = this._handleModeChange.bind(this);
-    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
+    //this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
+
+    // используем интерфейс моделей и подписываем обработчики действий моделей на их события
+    this._filtersModel.addObserver(this._handleModelEvent);
+    this._sortModel.addObserver(this._handleModelEvent);
+    this._tripPointsModel.addObserver(this._handleModelEvent);
+    this._offersModel.addObserver(this._handleModelEvent);
+    this._destinationsModel.addObserver(this._handleModelEvent);
+
+    this._tripPointAddPresenter = new TripPointAddPresenter(this._tripPointsListComponent, this._handleViewAction, this._offersModel, this._destinationsModel);
   }
 
   // далее объявим методы презентера
   // Метод для инициализации (начала работы) модуля,
-  init(tripPoints, eventTypeToOffersMap, destinations) {
-    // 1) скопируем исходные данные, которые могут быть изменены (хорошая практика) и присвоим их соотв. свойству
-    // эти данные будем спокойно менять (сортировка / фильтрация)
-    this._tripPoints = tripPoints.slice();
-    // а эти данные будут нам нужны для сохранения исходного порядка
-    this._sourcedTripPoints = tripPoints.slice();
-    // 2) остальные данные, которые нужны нам для нашей логики (в данном случае речь идёт о словаре и массиве)
-    // также присвоим соотв.свойствам, но копировать не будем, так как это неизменяемые данные
-    this._eventTypeToOffersMap = eventTypeToOffersMap;
-    this._destinations = destinations;
-    // 3) отрисуем на странице контейнеры (общий и список поездок)
+  init() {
     render(this._tripBoardContainer, this._tripBoardComponent, RenderPosition.BEFOREEND);
     render(this._tripBoardComponent, this._tripPointsListComponent, RenderPosition.BEFOREEND);
-    // 4) отрисуем полезные данные (сортировку и сами точки маршрута) - это инкапсулировано в методе _renderTripBoard
     this._renderTripBoard();
+  }
+
+  // добавим обёртки-геттеры для получения данных из моделей (данные теперь мы НЕ храним в презентерах! Это функция Модели!)
+  // также по примеру Академии расширим функционал метода _getTripPoints: пусть он возвращает нам не просто данные в случайном
+  // порядке, а в том порядке, который нужен. Для этого дополнительно будем сразу в этом методе сортировать.
+  _getTripPoints() {
+    const activeFilter = this._filtersModel.getFilter();
+    const activeSort = this._sortModel.getSort();
+    const tripPoints = this._tripPointsModel.getTripPoints();
+    const filteredTripPoints = filter[activeFilter](tripPoints);
+
+    return filteredTripPoints.sort(sort[activeSort]);
+  }
+
+  _getOffers() {
+    return this._offersModel.getOffers();
+  }
+
+  _getDestinations() {
+    return this._destinationsModel.getDestinations();
   }
 
   // объявим метод обработки события ЛЮБОГО изменения(типа события, направления, дат, цены, доп.предложений) точки маршрута
   // Это и есть ИЗМЕНЕНИЕ ДАННЫХ в ответ на действия ПОЛЬЗОВАТЕЛЯ.
-  _handleTripPointChange(updatedTripPoint) {
-    // возвращаем обновлённый массив точек маршрута, с которым работают разные методы, которые должны знать об изменениях
-    this._tripPoints = updateItem(this._tripPoints, updatedTripPoint);
-    // так как теперь у нас есть 2 массива данных (с изменённым в результате фильтрации/сортировки порядком и исходный),
-    // то будем так же обновлять и массив точек маршрута с исходным порядком
-    this._sourcedTripPoints = updateItem(this._sourcedTripPoints, updatedTripPoint);
-    // так как поменялись данные, то нужно обновить соответствующие представления (через презентер точки маршрута, который
-    // можно найти по id в объекте, в котором собраны все презентеры точек маршрута)
-    this._tripPointPresenters[updatedTripPoint.id].init(updatedTripPoint, this._eventTypeToOffersMap, this._destinations);
+  // _handleTripPointChange(updatedTripPoint) {
+  //   this._tripPointPresenters[updatedTripPoint.id].init(updatedTripPoint/*, this._eventTypeToOffersMap, this._destinations*/);
+  // }
+
+  // заменим метод _handleTripPointChange на обработчик ЛЮБОГО пользовательского действия (пока непонятно как это возможно,
+  // слишком абстрактно звучит...)
+  // Что касается параметров метода, то они такие:
+  // actionType - действие пользователя, нужно чтобы понять, какой метод модели вызвать
+  // updateType - тип изменений, нужно чтобы понять, что после нужно обновить
+  // update - обновленные данные для передачи в модель
+  _handleViewAction(actionType, updateType, update) {
+    // делаем вилку вызовов методов модели в зависимости от действий пользователя (у нас их всего 3)
+    switch(actionType) {
+      case UserAction.UPDATE_TRIP_POINT:
+        this._tripPointsModel.updateTripPoint(updateType, update);
+        break;
+      case UserAction.ADD_TRIP_POINT:
+        this._tripPointsModel.addTripPoint(updateType, update);
+        break;
+      case UserAction.DELETE_TRIP_POINT:
+        this._tripPointsModel.deleteTripPoint(updateType, update);
+        break;
+    }
+  }
+
+  // и по аналогии с методом _handleViewAction объявим метод _handleModelEvent, который будет обрабатывать события
+  // модели, но параметры будут отличаться:
+  // updateType - тип изменений
+  // data - обновленные данные для передачи во вьюхи
+  //_handleModelEvent(updateType, data, resetSort) {
+  _handleModelEvent(updateType, data) {
+    // здесь также делаем вилку, но теперь уже это вилка вызовов презентера в зависимости от событий модели
+    // (у нас их всего 3)
+    switch(updateType) {
+      case UpdateType.PATCH:
+        // в данной ветке мы будем делать самое мелкое обновление, а именно обновление какой-то одной точки маршрута
+        // по ID из данных модели находим соответствующий презентер точки маршрута и вызываем у него метод init с новыми
+        // данными (под капотом метод всё, что нужно обновит)
+        this._tripPointPresenters[data.id].init(data);
+        break;
+      case UpdateType.MINOR:
+        // в данной ветке мы будем делать минорное (более крупное чем PATCH) обновление,
+        // а именно обновление всего списка точек маршрута
+        this._clearTripBoard();
+        this._renderTripBoard();
+        break;
+      case UpdateType.MAJOR:
+        // в данной ветке мы будем делать самое большое мажорное обновление,
+        // а именно обновление всей доски точек маршрута (то есть список точек + сортировка)
+        this._clearTripBoard();
+        this._renderTripBoard();
+        break;
+    }
+  }
+
+  // Смена фильтра вызывает major-обновление => происходит полная перерисовка доски
+  // Смена сортировки вызывает major-обновление => происходит полная перерисовка доски
+  // Как сделать так, чтобы при смене фильтра дополнительно происходил сброс сортировки?
+  // Так как сортировка должна сбрасываться не только при смене фильтра, но и при других глобальных событиях,
+  // то ничего не остаётся как сделать её сброс при каждом major-обновлении
+
+  // объявим метод очистки доски точек маршрута
+  // он будет уметь не только очищать список точек маршрута (это нужно перед перерисовкой списка), но и при необходимости
+  // сбрасывать в default сортировку
+  // в параметре метода есть хитрость: по умолчанию мы передаём в него пустой объект, через деструктуризацию достаём оттуда
+  // свойство resetSortType (которое по умолчанию undefined, потому что его в принципе нет в пустом объекте)
+  // и тут же по умолчанию присваиваем ему значение false, а если при вызове этого метода мы туда явно передадим объект,
+  // в котором будет resetSortType со значением true, то именно это значение и будет в итоге у этого свойства
+  _clearTripBoard() {
+    this._tripPointAddPresenter.destroy();
+    Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.destroy());
+    // перезаписываем объект, в котором хранились презентеры точек маршрута пустым объектом
+    this._tripPointPresenters = {};
+    this._sortPresenters.forEach((sortPresenter) => sortPresenter.destroy());
+    this._sortPresenters = [];
+    remove(this._noTripPointsComponent);
   }
 
   // объявим метод для обработки изменения режима (просмотр/редактирование точки маршрута)
@@ -135,62 +229,15 @@ export default class TripBoardPresenter {
   // когда у нас уже открыта какая-то точка маршрута в режиме редактирования и мы входим в режим редактироания на другой
   // точке маршрута и у нас одновременно получается > 1 формы редактирования, чего по условиям в ТЗ быть НЕ должно
   _handleModeChange() {
+    this._tripPointAddPresenter.destroy();
     Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.resetView());
-  }
-
-  // объявим метод, который будет непосредственно заниматься сортировкой
-  // он будет принимать на вход тип сортировки (который придёт из data-аттрибута) и вызывать на мутабельном массиве
-  // встроенный в ЖабаСкрипт метод для сортировки массивов - SORT
-  // в него уже в качестве коллбэков передадим функции сортировки, которые мы опишем отдельно в утилитарном модуле
-  _sortTripPoints(sortType) {
-    switch(sortType) {
-      case SortType.DEFAULT:
-        this._tripPoints.sort(sortByDateUp);
-        break;
-      case SortType.SORT_BY_PRICE_DOWN:
-        this._tripPoints.sort(sortByPriceDown);
-        break;
-      case SortType.SORT_BY_TIME_DOWN:
-        this._tripPoints.sort(sortByTimeDown);
-        break;
-    }
-
-    // и в конце работы метода не забываем засэтить внутреннее свойство currentSortType
-    this._currentSortType = sortType;
-  }
-
-  // объявим метод для обработки события смены сортировки списка точек маршрута
-  // метод должен быть приватным, так как мы будем передавать его в качестве коллбэка для подписки на клик во вьюхе сортировки
-  _handleSortTypeChange(sortType) {
-    // сделаем проверку на случай, если у нас текущая сортировка соответствует выбираемой пользователем
-    // и в этом случае НЕ будем ничего делать - зачем нам лишняя перерисовка?
-    if (this._currentSortType === sortType) {
-      return;
-    }
-
-    // теперь при наступлении события выбора сортировки пользователем в случае, если сортировка отличается от текущей
-    // 1) производим сортировку (изменение данных)
-    this._sortTripPoints(sortType);
-    // 2) производим очистку списка точек маршрута
-    this._clearTripPointsList();
-    // 3) отрисовываем по-новой список точек маршрута
-    this._renderTripPointsList();
-    // p.s. В каких-то случаях оптимальнее было бы переставлять DOM-элементы,
-    // но в нашем случае со слов авторов курса проще всё грохнуть и тупо перерисовать (думаю, что если бы списки
-    // были огромные, то вряд ли это было бы оптимальным решением).
-  }
-
-  // метод для отрисовки списка точек маршрута
-  _renderTripPointsList() {
-    this._renderTripPoints(0, Math.min(this._tripPoints.length, EVENT_COUNT));
   }
 
   // Метод для рендеринга сортировки
   _renderSort() {
-    render(this._tripBoardComponent, this._sortComponent, RenderPosition.AFTERBEGIN);
-    // воспользуемся публичным интерфейсом вьюхи сортировки и подпишем коллбэк,
-    // в котором будет вся логика сортировки,на клик
-    this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
+    const sortPresenter = new SortPresenter(this._tripBoardComponent, this._sortModel);
+    this._sortPresenters.push(sortPresenter);
+    sortPresenter.init();
   }
 
   // напишем функцию (по аналогии с демонстрационным проектом), которая будет рендерить точку маршрута (по аналогии
@@ -205,15 +252,11 @@ export default class TripBoardPresenter {
     // при создании экземпляра презентера точки маршрута будем передавать ему в конструктор метод для обновления данных
     // и метод для обработки изменения режима просмотра/редактирования
     // возможно здесь идёт речь о внедрении зависимости (dependency injection), но это не точно...
-    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent, this._handleTripPointChange, this._handleModeChange);
+    const tripPointPresenter = new TripPointPresenter(this._tripPointsListComponent, this._handleViewAction, this._handleModeChange);
     tripPointPresenter.init(tripPoint, eventTypeToOffersMap, destinations);
     this._tripPointPresenters[tripPoint.id] = tripPointPresenter;
   }
 
-  // Метод для рендеринга N-точек маршрута за раз
-  _renderTripPoints(from, to) {
-    this._tripPoints.slice(from, to).forEach((tripPoint) => this._renderTripPoint(tripPoint, this._eventTypeToOffersMap, this._destinations));
-  }
 
   // Метод для рендеринга заглушки
   _renderNoTripPoints() {
@@ -222,9 +265,12 @@ export default class TripBoardPresenter {
 
   // Метод для отрисовки "полезной" части доски - сортировки - точек маршрута
   _renderTripBoard() {
+    const tripPoints = this._getTripPoints();
+    const eventOffers = this._getOffers();
+    const destinations = this._getDestinations();
     // отрисуем заглушку на случай, если у нас пока нет ни одной точки маршрута (в ТЗ вроде бы ничего не сказано, надо
     // ли рисовать эту заглушку в случае, когда после применения того или иного фильтра в списке ничего не отображается)
-    if (this._tripPoints.length === 0) {
+    if (tripPoints.length === 0) {
       this._renderNoTripPoints();
       return;
     }
@@ -233,13 +279,14 @@ export default class TripBoardPresenter {
     this._renderSort();
 
     // отрисуем точки маршрута
-    this._renderTripPointsList();
+    tripPoints.forEach((tripPoint) => this._renderTripPoint(tripPoint, eventOffers, destinations));
   }
 
-  // Метод для очистки списка точек маршрута на базе описанного в презентере метода для "полного" удаления вьюх точки
-  _clearTripPointsList() {
-    Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.destroy());
-    // после того как вьюхи и соответствующую им разметку мы "грохнули", нужно также удалить ссылки на их презентеры
-    this._tripPointPresenters = {};
+  // объявим метод, который будет инициализировать презентер добавления новой точки
+  // (не забываем, что по ТЗ при создании новой точки фильтр и сортировка должны сбрасываться к EVERYTHING и DAY соответственно)
+  createTripPoint() {
+    this._filtersModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    this._sortModel.setSort(UpdateType.MAJOR, null, true);
+    this._tripPointAddPresenter.init();
   }
 }
