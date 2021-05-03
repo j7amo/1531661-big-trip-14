@@ -3,10 +3,11 @@ import TripPointsListView from '../view/trip-points-list.js';
 import NoTripPointsView from '../view/no-trip-points.js';
 import {remove, render, RenderPosition} from '../utils/render.js';
 import {filter} from '../utils/filters.js';
-import { UpdateType, UserAction} from '../const.js';
+import {FilterType, UpdateType, UserAction} from '../const.js';
 import {sort} from '../utils/sort.js';
 import TripPointPresenter from './trip-point.js';
 import SortPresenter from './sort.js';
+import TripPointAddPresenter from './trip-point-add.js';
 
 // Общая концепция паттерна MVP, если я правильно понимаю, заключается в следующем:
 // ============================
@@ -110,6 +111,8 @@ export default class TripBoardPresenter {
     this._tripPointsModel.addObserver(this._handleModelEvent);
     this._offersModel.addObserver(this._handleModelEvent);
     this._destinationsModel.addObserver(this._handleModelEvent);
+
+    this._tripPointAddPresenter = new TripPointAddPresenter(this._tripPointsListComponent, this._handleViewAction, this._offersModel, this._destinationsModel);
   }
 
   // далее объявим методы презентера
@@ -191,7 +194,7 @@ export default class TripBoardPresenter {
       case UpdateType.MAJOR:
         // в данной ветке мы будем делать самое большое мажорное обновление,
         // а именно обновление всей доски точек маршрута (то есть список точек + сортировка)
-        this._clearTripBoard(/*{ resetSortType: true }*/);
+        this._clearTripBoard();
         this._renderTripBoard();
         break;
     }
@@ -211,6 +214,7 @@ export default class TripBoardPresenter {
   // и тут же по умолчанию присваиваем ему значение false, а если при вызове этого метода мы туда явно передадим объект,
   // в котором будет resetSortType со значением true, то именно это значение и будет в итоге у этого свойства
   _clearTripBoard() {
+    this._tripPointAddPresenter.destroy();
     Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.destroy());
     // перезаписываем объект, в котором хранились презентеры точек маршрута пустым объектом
     this._tripPointPresenters = {};
@@ -225,6 +229,7 @@ export default class TripBoardPresenter {
   // когда у нас уже открыта какая-то точка маршрута в режиме редактирования и мы входим в режим редактироания на другой
   // точке маршрута и у нас одновременно получается > 1 формы редактирования, чего по условиям в ТЗ быть НЕ должно
   _handleModeChange() {
+    this._tripPointAddPresenter.destroy();
     Object.values(this._tripPointPresenters).forEach((tripPointPresenter) => tripPointPresenter.resetView());
   }
 
@@ -275,5 +280,13 @@ export default class TripBoardPresenter {
 
     // отрисуем точки маршрута
     tripPoints.forEach((tripPoint) => this._renderTripPoint(tripPoint, eventOffers, destinations));
+  }
+
+  // объявим метод, который будет инициализировать презентер добавления новой точки
+  // (не забываем, что по ТЗ при создании новой точки фильтр и сортировка должны сбрасываться к EVERYTHING и DAY соответственно)
+  createTripPoint() {
+    this._filtersModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    this._sortModel.setSort(UpdateType.MAJOR, null, true);
+    this._tripPointAddPresenter.init();
   }
 }

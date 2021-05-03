@@ -16,6 +16,7 @@ const EVENT_COUNT = 10;
 
 // находим DOM-элементы
 const tripMainElement = document.querySelector('.trip-main');
+const tripPointAddButton = tripMainElement.querySelector('.trip-main__event-add-btn');
 const tripInfoElement = tripMainElement.querySelector('.trip-info');
 const tripControlsNavigationElement = tripMainElement.querySelector('.trip-controls__navigation');
 const filtersContainer = tripMainElement.querySelector('.trip-controls__filters');
@@ -49,3 +50,9 @@ const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, so
 filtersPresenter.init();
 const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel);
 tripBoardPresenter.init();
+
+// подписываем обработчик
+tripPointAddButton.addEventListener('click', (evt) => {
+  evt.preventDefault();
+  tripBoardPresenter.createTripPoint();
+});
