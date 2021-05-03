@@ -1,6 +1,4 @@
 import dayjs from 'dayjs';
-import TripInfoView from './view/trip-info.js';
-import TripCostView from './view/trip-cost.js';
 import SiteMenuView from './view/site-menu';
 import TripBoardPresenter from './presenter/trip-board.js';
 import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
@@ -11,13 +9,14 @@ import DestinationsModel from './model/destinations';
 import FiltersModel from './model/filters.js';
 import FiltersPresenter from './presenter/filters.js';
 import SortModel from './model/sort.js';
+import TripInfoPresenter from './presenter/trip-info.js';
 
 const EVENT_COUNT = 10;
 
 // находим DOM-элементы
 const tripMainElement = document.querySelector('.trip-main');
 const tripPointAddButton = tripMainElement.querySelector('.trip-main__event-add-btn');
-const tripInfoElement = tripMainElement.querySelector('.trip-info');
+const tripInfoContainer = tripMainElement.querySelector('.trip-info');
 const tripControlsNavigationElement = tripMainElement.querySelector('.trip-controls__navigation');
 const filtersContainer = tripMainElement.querySelector('.trip-controls__filters');
 const tripBoardContainer = document.querySelector('.page-main__container');
@@ -41,11 +40,11 @@ offersModel.setOffers(eventTypeToOffersMap);
 destinationsModel.setDestinations(destinations);
 
 // отрисовываем представления
-render(tripInfoElement, new TripInfoView(tripPointsMocks), RenderPosition.BEFOREEND);
-render(tripInfoElement, new TripCostView(tripPointsMocks), RenderPosition.BEFOREEND);
 render(tripControlsNavigationElement, new SiteMenuView(), RenderPosition.BEFOREEND);
 
 // рендерим моки
+const tripInfoPresenter = new TripInfoPresenter(tripInfoContainer, tripPointsModel);
+tripInfoPresenter.init();
 const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel);
 filtersPresenter.init();
 const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel);
