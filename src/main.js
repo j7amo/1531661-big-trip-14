@@ -10,6 +10,8 @@ import FiltersModel from './model/filters.js';
 import FiltersPresenter from './presenter/filters.js';
 import SortModel from './model/sort.js';
 import TripInfoPresenter from './presenter/trip-info.js';
+import SiteMenuPresenter from './presenter/site-menu.js';
+import MenuModel from './model/menu.js';
 
 const EVENT_COUNT = 10;
 
@@ -17,7 +19,7 @@ const EVENT_COUNT = 10;
 const tripMainElement = document.querySelector('.trip-main');
 const tripPointAddButton = tripMainElement.querySelector('.trip-main__event-add-btn');
 const tripInfoContainer = tripMainElement.querySelector('.trip-info');
-const tripControlsNavigationElement = tripMainElement.querySelector('.trip-controls__navigation');
+const siteMenuContainer = tripMainElement.querySelector('.trip-controls__navigation');
 const filtersContainer = tripMainElement.querySelector('.trip-controls__filters');
 const tripBoardContainer = document.querySelector('.page-main__container');
 
@@ -28,6 +30,7 @@ const tripPointsMocks = generateTripPoints(EVENT_COUNT, destinations, eventTypeT
 const prettyMocks = Array.from(tripPointsMocks.values()).sort((firstTripPoint, secondTripPoint) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
 
 // создаём модели наших структур
+const menuModel = new MenuModel();
 const tripPointsModel = new TripPointsModel();
 const offersModel = new OffersModel();
 const destinationsModel = new DestinationsModel();
@@ -40,11 +43,13 @@ offersModel.setOffers(eventTypeToOffersMap);
 destinationsModel.setDestinations(destinations);
 
 // отрисовываем представления
-render(tripControlsNavigationElement, new SiteMenuView(), RenderPosition.BEFOREEND);
+//render(siteMenuContainer, new SiteMenuView(), RenderPosition.BEFOREEND);
 
 // рендерим моки
 const tripInfoPresenter = new TripInfoPresenter(tripInfoContainer, tripPointsModel);
 tripInfoPresenter.init();
+const siteMenuPresenter = new SiteMenuPresenter(siteMenuContainer, menuModel, sortModel);
+siteMenuPresenter.init();
 const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel);
 filtersPresenter.init();
 const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel);
