@@ -8,7 +8,6 @@ const createNoTripPointsTemplate = () => {
   </li>`;
 };
 
-// по аналогии с site-menu.js производим "перевод на классы"
 export default class NoTripPointsView extends AbstractView {
   getTemplate() {
     return createNoTripPointsTemplate();

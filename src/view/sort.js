@@ -33,7 +33,6 @@ const createSortTemplate = (currentSortType) => {
   </form>`;
 };
 
-// по аналогии с site-menu.js производим "перевод на классы"
 export default class SortView extends AbstractView {
   // ранее мы явно не определяли конструктор в классе SortView - он неявно назначался классом-родителем AbstractView
   // теперь, так как нам надо в конструкторе засэтить дополнительные поля, то конструктор нуно явно объявить и

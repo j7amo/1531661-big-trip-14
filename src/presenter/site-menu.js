@@ -13,7 +13,7 @@ export default class SiteMenuPresenter {
     this._menuComponent = null;
 
     this._handleModelEvent = this._handleModelEvent.bind(this);
-    this._handleActiveMenuChange = this._handleActiveMenuChange.bind(this);
+    this._handleMenuClick = this._handleMenuClick.bind(this);
 
     this._menuModel.addObserver(this._handleModelEvent);
   }
@@ -21,7 +21,7 @@ export default class SiteMenuPresenter {
   init() {
     const prevMenuComponent = this._menuComponent;
     this._menuComponent = new SiteMenuView(this._menuModel.getMenu());
-    this._menuComponent.setActiveMenuChangeHandler(this._handleActiveMenuChange);
+    this._menuComponent.setMenuClickHandler(this._handleMenuClick);
 
     if (prevMenuComponent === null) {
       render(this._menuContainer, this._menuComponent, RenderPosition.BEFOREEND);
@@ -30,16 +30,21 @@ export default class SiteMenuPresenter {
 
     replace(this._menuComponent, prevMenuComponent);
     remove(prevMenuComponent);
+    console.log('разметка компонента МЕНЮ:');
+    console.log(this._menuComponent.getTemplate());
   }
 
   _handleModelEvent() {
     this.init();
   }
 
-  _handleActiveMenuChange(activeMenu) {
+  _handleMenuClick(activeMenu) {
+    console.log('внутри _handleMenuClick презентера');
     if (this._menuModel.getMenu() === activeMenu) {
+      console.log('внутри if так как выбранный пункт меню такой же как в модели');
       return;
     }
+    this._menuModel.setMenu(UpdateType.MAJOR, activeMenu);
     // по ТЗ сортировка при смене пунктов меню должна сбрасываться
     this._sortModel.setSort(UpdateType.MAJOR, null, true);
   }

@@ -15,7 +15,6 @@ const createTripCostTemplate = (allTripPointsData) => {
   </p>`;
 };
 
-// по аналогии с site-menu.js производим "перевод на классы"
 export default class TripCostView extends AbstractView {
   constructor(allTripPointsData) {
     super();

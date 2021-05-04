@@ -1,8 +1,6 @@
 import dayjs from 'dayjs';
-import SiteMenuView from './view/site-menu';
 import TripBoardPresenter from './presenter/trip-board.js';
 import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
-import { render, RenderPosition } from './utils/render.js';
 import TripPointsModel from './model/trip-points';
 import OffersModel from './model/offers';
 import DestinationsModel from './model/destinations';
@@ -11,7 +9,7 @@ import FiltersPresenter from './presenter/filters.js';
 import SortModel from './model/sort.js';
 import TripInfoPresenter from './presenter/trip-info.js';
 import SiteMenuPresenter from './presenter/site-menu.js';
-import MenuModel from './model/menu.js';
+import MenuModel from './model/site-menu.js';
 
 const EVENT_COUNT = 10;
 

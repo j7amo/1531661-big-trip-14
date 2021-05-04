@@ -45,7 +45,6 @@ const createTripInfoTemplate = (allTripPointsData) => {
   }
 };
 
-// по аналогии с site-menu.js производим "перевод на классы"
 export default class TripInfoView extends AbstractView {
   constructor(allTripPointsData) {
     super();

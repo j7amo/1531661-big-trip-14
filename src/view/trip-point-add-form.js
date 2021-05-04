@@ -77,7 +77,6 @@ const createTripPointCreationFormTemplate = (tripPoint, getEventTypesPickerMarku
   </li>`;
 };
 
-// по аналогии с site-menu.js производим "перевод на классы"
 export default class TripPointAddFormView extends AbstractForm {
   constructor(eventTypeToOffersMap, destinations) {
     super();

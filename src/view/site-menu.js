@@ -12,19 +12,21 @@ export default class SiteMenuView extends AbstractView {
   constructor(activeMenu) {
     super();
     this._activeMenu = activeMenu;
-    this._handleActiveMenuChange = this._handleActiveMenuChange.bind(this);
+    this._handleMenuClick = this._handleMenuClick.bind(this);
   }
   getTemplate() {
     return createSiteMenuTemplate(this._activeMenu);
   }
 
-  _handleActiveMenuChange(evt) {
+  _handleMenuClick(evt) {
     evt.preventDefault();
-    this._callback.menuChange(evt.target.dataset.menuType);
+    console.log('сработал элемент ' + evt.target);
+    console.log('его menuType ' + evt.target.dataset.menuType);
+    this._callback.menuClick(evt.target.dataset.menuType);
   }
 
-  setActiveMenuChangeHandler(callback) {
-    this._callback.menuChange = callback;
-    this.getElement().addEventListener('click', this._handleActiveMenuChange);
+  setMenuClickHandler(callback) {
+    this._callback.menuClick = callback;
+    this.getElement().querySelectorAll('.trip-tabs__btn').forEach((child) => child.addEventListener('click', this._handleMenuClick));
   }
 }

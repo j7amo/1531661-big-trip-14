@@ -5,7 +5,6 @@ const createTripPointsListTemplate = () => {
   </ul>`;
 };
 
-// по аналогии с site-menu.js производим "перевод на классы"
 export default class TripPointsListView extends AbstractView {
   getTemplate() {
     return createTripPointsListTemplate();
