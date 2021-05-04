@@ -10,6 +10,8 @@ import SortModel from './model/sort.js';
 import TripInfoPresenter from './presenter/trip-info.js';
 import SiteMenuPresenter from './presenter/site-menu.js';
 import MenuModel from './model/site-menu.js';
+import StatisticsPresenter from './presenter/statistics.js';
+import {MenuType} from "./const";
 
 const EVENT_COUNT = 10;
 
@@ -19,7 +21,7 @@ const tripPointAddButton = tripMainElement.querySelector('.trip-main__event-add-
 const tripInfoContainer = tripMainElement.querySelector('.trip-info');
 const siteMenuContainer = tripMainElement.querySelector('.trip-controls__navigation');
 const filtersContainer = tripMainElement.querySelector('.trip-controls__filters');
-const tripBoardContainer = document.querySelector('.page-main__container');
+const mainContentContainer = document.querySelector('.page-main__container');
 
 //генерим  моки
 const destinations = generateDestinations();
@@ -40,21 +42,34 @@ tripPointsModel.setTripPoints(prettyMocks);
 offersModel.setOffers(eventTypeToOffersMap);
 destinationsModel.setDestinations(destinations);
 
-// отрисовываем представления
-//render(siteMenuContainer, new SiteMenuView(), RenderPosition.BEFOREEND);
+const switchTableStatsTabs = (currentTab) => {
+  switch (currentTab) {
+    case MenuType.TABLE:
+      statisticsPresenter.destroy();
+      tripBoardPresenter.init();
+      break;
+    case MenuType.STATS:
+      tripBoardPresenter.destroy();
+      statisticsPresenter.init();
+      break;
+  }
+};
 
 // рендерим моки
 const tripInfoPresenter = new TripInfoPresenter(tripInfoContainer, tripPointsModel);
 tripInfoPresenter.init();
-const siteMenuPresenter = new SiteMenuPresenter(siteMenuContainer, menuModel, sortModel);
+const siteMenuPresenter = new SiteMenuPresenter(siteMenuContainer, menuModel, sortModel, switchTableStatsTabs);
 siteMenuPresenter.init();
 const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel);
 filtersPresenter.init();
-const tripBoardPresenter = new TripBoardPresenter(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel);
+const tripBoardPresenter = new TripBoardPresenter(mainContentContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel);
 tripBoardPresenter.init();
+const statisticsPresenter = new StatisticsPresenter(mainContentContainer, tripPointsModel);
+//statisticsPresenter.init();
 
 // подписываем обработчик
 tripPointAddButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   tripBoardPresenter.createTripPoint();
 });
+

@@ -1,15 +1,16 @@
 import { replace, remove, render, RenderPosition} from '../utils/render.js';
-import { UpdateType } from '../const.js';
+import { UpdateType, MenuType } from '../const.js';
 import SiteMenuView from '../view/site-menu.js';
 
 export default class SiteMenuPresenter {
   // в конструктор традиционно передаём контейнер
   // а также модель меню (в которой храним текущий выбранный пункт меню) и модель сортировки (чтобы её
   // сбрасывать в default при смене активного пункта меню)
-  constructor(menuContainer, menuModel, sortModel) {
+  constructor(menuContainer, menuModel, sortModel, switchTableStatsTabs) {
     this._menuContainer = menuContainer;
     this._menuModel = menuModel;
     this._sortModel = sortModel;
+    this._switchTableStatsTabs = switchTableStatsTabs;
     this._menuComponent = null;
 
     this._handleModelEvent = this._handleModelEvent.bind(this);
@@ -44,6 +45,7 @@ export default class SiteMenuPresenter {
       console.log('внутри if так как выбранный пункт меню такой же как в модели');
       return;
     }
+    this._switchTableStatsTabs(activeMenu);
     this._menuModel.setMenu(UpdateType.MAJOR, activeMenu);
     // по ТЗ сортировка при смене пунктов меню должна сбрасываться
     this._sortModel.setSort(UpdateType.MAJOR, null, true);
