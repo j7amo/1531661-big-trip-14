@@ -1,9 +1,6 @@
 import dayjs from 'dayjs';
 import AbstractView from './abstract.js';
-
-const MINUTES_IN_DAY = 1440;
-const MINUTES_IN_HOUR = 60;
-const MAX_NUMBER_WITH_LEADING_ZERO = 9;
+import { getDurationInMinutes, getDurationFormatted } from '../utils/trip-point.js';
 
 const createTripPointTemplate = (tripPointData) => {
   const {
@@ -23,31 +20,7 @@ const createTripPointTemplate = (tripPointData) => {
   const beginDateTimeFormatted = beginDate ? dayjs(beginDate).format('HH-mm') : '';
   const endFullDateWithTimeFormatted = endDate ? dayjs(endDate).format('YYYY-MM-DDTHH:mm') : '';
   const endDateTimeFormatted = endDate ? dayjs(endDate).format('HH-mm') : '';
-  const eventDuration = (beginDate && endDate) ? dayjs(endDate).diff(dayjs(beginDate), 'minute') : '';
-
-  let eventDurationFormatted;
-
-  if (eventDuration) {
-    if (eventDuration >= MINUTES_IN_DAY) {
-      const fullDays = Math.floor(eventDuration / MINUTES_IN_DAY);
-      const fullHours = Math.floor((eventDuration - fullDays * MINUTES_IN_DAY) / MINUTES_IN_HOUR);
-      const fullMinutes = eventDuration - fullDays * MINUTES_IN_DAY - fullHours * MINUTES_IN_HOUR;
-      const fullDaysFormatted = (fullDays > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullDays}` : `0${fullDays}`;
-      const fullHoursFormatted = (fullHours > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullHours}` : `0${fullHours}`;
-      const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
-      eventDurationFormatted = `${fullDaysFormatted}D ${fullHoursFormatted}H ${fullMinutesFormatted}M`;
-    } else if (eventDuration < MINUTES_IN_DAY && eventDuration >= MINUTES_IN_HOUR) {
-      const fullHours = Math.floor(eventDuration / MINUTES_IN_HOUR);
-      const fullMinutes = eventDuration - fullHours * MINUTES_IN_HOUR;
-      const fullHoursFormatted = (fullHours > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullHours}` : `0${fullHours}`;
-      const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
-      eventDurationFormatted = `${fullHoursFormatted}H ${fullMinutesFormatted}M`;
-    } else {
-      const fullMinutes = eventDuration;
-      const fullMinutesFormatted = (fullMinutes > MAX_NUMBER_WITH_LEADING_ZERO) ? `${fullMinutes}` : `0${fullMinutes}`;
-      eventDurationFormatted = `${fullMinutesFormatted}M`;
-    }
-  }
+  const eventDuration = getDurationInMinutes(tripPointData);
 
   let listOfOffers = '';
   offers.forEach(({title, price}) => {
@@ -75,7 +48,7 @@ const createTripPointTemplate = (tripPointData) => {
           &mdash;
           <time class="event__end-time" datetime="${endFullDateWithTimeFormatted}">${endDateTimeFormatted}</time>
         </p>
-        <p class="event__duration">${eventDurationFormatted ? eventDurationFormatted : ''}</p>
+        <p class="event__duration">${getDurationFormatted(eventDuration) ? getDurationFormatted(eventDuration) : ''}</p>
       </div>
       <p class="event__price">
         &euro;&nbsp;<span class="event__price-value">${price ? price : ''}</span>
@@ -162,31 +135,4 @@ export default class TripPointView extends AbstractView {
     this._callback.favoriteClick = callback;
     this.getElement().querySelector('.event__favorite-btn').addEventListener('click', this._handleFavoriteClick);
   }
-
-  // static parseTripPointToStateData(tripPoint) {
-  //   return Object.assign(
-  //     {},
-  //     tripPoint,
-  //     {
-  //       // будем подмешивать вложенный объект с состоянием
-  //       state: {
-  //         isFavorite: tripPoint.isFavorite,
-  //       },
-  //     },
-  //   );
-  // }
-  //
-  // static parseStateDataToTripPoint(stateData) {
-  //   stateData = Object.assign({}, stateData);
-  //
-  //   // мы должны изучить состояние вьюхи и на основании этого состояния как-то изменить исходные данные
-  //   // в нашем конкретном случае мы просто считываем значение флага в состоянии (что там накликал юзверь)
-  //   // и передаём его в данные, которые потом уйдут в модель
-  //   stateData.isFavorite = stateData.state.isFavorite;
-  //
-  //   // удаляем "подмешанные" свойства, так как их нет и не должно быть в данных модели
-  //   delete stateData.state;
-  //
-  //   return stateData;
-  // }
 }

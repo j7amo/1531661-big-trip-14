@@ -11,7 +11,7 @@ import TripInfoPresenter from './presenter/trip-info.js';
 import SiteMenuPresenter from './presenter/site-menu.js';
 import MenuModel from './model/site-menu.js';
 import StatisticsPresenter from './presenter/statistics.js';
-import {MenuType} from "./const";
+import { MenuType } from './const.js';
 
 const EVENT_COUNT = 10;
 
@@ -47,10 +47,12 @@ const switchTableStatsTabs = (currentTab) => {
     case MenuType.TABLE:
       statisticsPresenter.destroy();
       tripBoardPresenter.init();
+      tripPointAddButton.disabled = false;
       break;
     case MenuType.STATS:
       tripBoardPresenter.destroy();
       statisticsPresenter.init();
+      tripPointAddButton.disabled = true;
       break;
   }
 };
@@ -65,11 +67,10 @@ filtersPresenter.init();
 const tripBoardPresenter = new TripBoardPresenter(mainContentContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel);
 tripBoardPresenter.init();
 const statisticsPresenter = new StatisticsPresenter(mainContentContainer, tripPointsModel);
-//statisticsPresenter.init();
 
-// подписываем обработчик
+// подписываем обработчик клика по кнопке добавления новой точки маршрута
 tripPointAddButton.addEventListener('click', (evt) => {
   evt.preventDefault();
   tripBoardPresenter.createTripPoint();
+  tripPointAddButton.disabled = true;
 });
-

@@ -20,8 +20,6 @@ export default class SiteMenuView extends AbstractView {
 
   _handleMenuClick(evt) {
     evt.preventDefault();
-    console.log('сработал элемент ' + evt.target);
-    console.log('его menuType ' + evt.target.dataset.menuType);
     this._callback.menuClick(evt.target.dataset.menuType);
   }
 

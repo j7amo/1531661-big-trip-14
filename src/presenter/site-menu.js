@@ -1,5 +1,5 @@
 import { replace, remove, render, RenderPosition} from '../utils/render.js';
-import { UpdateType, MenuType } from '../const.js';
+import { UpdateType } from '../const.js';
 import SiteMenuView from '../view/site-menu.js';
 
 export default class SiteMenuPresenter {
@@ -31,8 +31,6 @@ export default class SiteMenuPresenter {
 
     replace(this._menuComponent, prevMenuComponent);
     remove(prevMenuComponent);
-    console.log('разметка компонента МЕНЮ:');
-    console.log(this._menuComponent.getTemplate());
   }
 
   _handleModelEvent() {
@@ -40,9 +38,7 @@ export default class SiteMenuPresenter {
   }
 
   _handleMenuClick(activeMenu) {
-    console.log('внутри _handleMenuClick презентера');
     if (this._menuModel.getMenu() === activeMenu) {
-      console.log('внутри if так как выбранный пункт меню такой же как в модели');
       return;
     }
     this._switchTableStatsTabs(activeMenu);
