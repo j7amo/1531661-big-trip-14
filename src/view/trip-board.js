@@ -6,7 +6,6 @@ const createTripBoardTemplate = () => {
   </section>`;
 };
 
-// по аналогии с site-menu.js производим "перевод на классы"
 export default class TripBoardView extends AbstractView {
   getTemplate() {
     return createTripBoardTemplate();

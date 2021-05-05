@@ -28,7 +28,6 @@ const createFiltersTemplate = (activeFilter) => {
   </form>`;
 };
 
-// по аналогии с site-menu.js производим "перевод на классы"
 export default class FiltersView extends AbstractView {
   constructor(activeFilter) {
     super();

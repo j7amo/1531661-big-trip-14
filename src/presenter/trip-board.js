@@ -105,12 +105,6 @@ export default class TripBoardPresenter {
     this._handleModeChange = this._handleModeChange.bind(this);
     //this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
 
-    // используем интерфейс моделей и подписываем обработчики действий моделей на их события
-    this._filtersModel.addObserver(this._handleModelEvent);
-    this._sortModel.addObserver(this._handleModelEvent);
-    this._tripPointsModel.addObserver(this._handleModelEvent);
-    this._offersModel.addObserver(this._handleModelEvent);
-    this._destinationsModel.addObserver(this._handleModelEvent);
 
     this._tripPointAddPresenter = new TripPointAddPresenter(this._tripPointsListComponent, this._handleViewAction, this._offersModel, this._destinationsModel);
   }
@@ -120,7 +114,25 @@ export default class TripBoardPresenter {
   init() {
     render(this._tripBoardContainer, this._tripBoardComponent, RenderPosition.BEFOREEND);
     render(this._tripBoardComponent, this._tripPointsListComponent, RenderPosition.BEFOREEND);
+    // используем интерфейс моделей и подписываем обработчики действий моделей на их события
+    this._filtersModel.addObserver(this._handleModelEvent);
+    this._sortModel.addObserver(this._handleModelEvent);
+    this._tripPointsModel.addObserver(this._handleModelEvent);
+    this._offersModel.addObserver(this._handleModelEvent);
+    this._destinationsModel.addObserver(this._handleModelEvent);
     this._renderTripBoard();
+  }
+
+  // добавим метод для полного уничтожения доски точек маршрута (этот метод нам понадобится в точке входа)
+  destroy() {
+    this._clearTripBoard();
+    remove(this._tripBoardComponent);
+    remove(this._tripPointsListComponent);
+    this._filtersModel.removeObserver(this._handleModelEvent);
+    this._sortModel.removeObserver(this._handleModelEvent);
+    this._tripPointsModel.removeObserver(this._handleModelEvent);
+    this._offersModel.removeObserver(this._handleModelEvent);
+    this._destinationsModel.removeObserver(this._handleModelEvent);
   }
 
   // добавим обёртки-геттеры для получения данных из моделей (данные теперь мы НЕ храним в презентерах! Это функция Модели!)

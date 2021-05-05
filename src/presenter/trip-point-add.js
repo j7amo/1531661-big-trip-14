@@ -16,20 +16,11 @@ export default class TripPointAddPresenter {
   }
 
   init() {
-    //this._prevTripPointAddComponent = this._tripPointAddComponent;
-
     this._tripPointAddComponent = new TripPointAddFormView(this._offersModel, this._destinationsModel);
     this._tripPointAddComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointAddComponent.setFormCancelHandler(this._handleFormCancelClick);
     render(this._tripPointsListContainer, this._tripPointAddComponent, RenderPosition.AFTERBEGIN);
     document.addEventListener('keydown', this._handleEscKeyDown);
-
-    // if (this._prevTripPointAddComponent === null) {
-    //   render(this._tripPointsListContainer, this._tripPointAddComponent, RenderPosition.AFTERBEGIN);
-    //   return;
-    // }
-    //
-    // remove(this._prevTripPointAddComponent);
   }
 
   destroy() {
@@ -42,11 +33,13 @@ export default class TripPointAddPresenter {
     if (evt.key === 'Esc' || evt.key === 'Escape') {
       evt.preventDefault();
       this.destroy();
+      document.querySelector('.trip-main__event-add-btn').disabled = false;
     }
   }
 
   _handleFormCancelClick() {
     this.destroy();
+    document.querySelector('.trip-main__event-add-btn').disabled = false;
   }
 
   _handleFormSubmit(tripPoint) {
@@ -56,5 +49,6 @@ export default class TripPointAddPresenter {
       tripPoint,
     );
     this.destroy();
+    document.querySelector('.trip-main__event-add-btn').disabled = false;
   }
 }

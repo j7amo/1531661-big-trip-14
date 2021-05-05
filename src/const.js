@@ -25,4 +25,10 @@ const FilterType = {
   PAST: 'past',
 };
 
-export { SortType, UserAction, UpdateType, FilterType };
+// добавим перечисление для типов текущего пункта меню
+const MenuType = {
+  TABLE: 'table',
+  STATS: 'stats',
+};
+
+export { SortType, UserAction, UpdateType, FilterType, MenuType };
