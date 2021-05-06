@@ -1,4 +1,8 @@
 // в этом модуле опишем API взаимодействия с сервером
+import TripPointsModel from './model/trip-points.js';
+import OffersModel from './model/offers.js';
+import DestinationsModel from './model/destinations.js';
+
 // заведём перечисление для типов используемых методов HTTP-запросов
 const Method = {
   GET: 'GET',
@@ -26,17 +30,20 @@ export default class Api {
   // объявим метод для получения точек маршрута с сервера
   getTripPoints() {
     return this._load({url: 'points'})
-      .then(Api.toJSON);
+      .then(Api.toJSON)
+      .then((tripPoints) => tripPoints.map((tripPoint) => TripPointsModel.adaptToClient(tripPoint)));
   }
   // объявим метод для получения офферов с сервера
   getOffers() {
     return this._load({url: 'offers'})
-      .then(Api.toJSON);
+      .then(Api.toJSON)
+      .then((offers) => OffersModel.adaptToClient(offers));
   }
   // объявим метод для получения направлений с сервера
   getDestinations() {
     return this._load({url: 'destinations'})
-      .then(Api.toJSON);
+      .then(Api.toJSON)
+      .then((destinations) => DestinationsModel.adaptToClient(destinations));
   }
 
   // метод обновления точки маршрута на сервере на основании имеющихся в модели точек маршрута данных
@@ -44,10 +51,11 @@ export default class Api {
     return this._load({
       url: `points/${tripPoint.id}`,
       method: Method.PUT,
-      body: JSON.stringify(tripPoint),
+      body: JSON.stringify(TripPointsModel.adaptToServer(tripPoint)),
       headers: new Headers({'Content-Type': 'application/json'}),
     })
-      .then(Api.toJSON);
+      .then(Api.toJSON)
+      .then(TripPointsModel.adaptToClient);
   }
 
   // в приватном методе _load мы будем на вход подавать

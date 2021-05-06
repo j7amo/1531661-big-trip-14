@@ -12,8 +12,15 @@ export default class TripPointsModel extends Observer {
   // объявим сеттер и геттер для свойства this._tripPoints
   // если я правильно понимаю, то эти методы будут "дёргать" презентеры для обновления модели и получения новых данных
   // из неё ( но это не точно =))))
-  setTripPoints(tripPoints) {
+  // UPDATE после 8-го раздела:
+  // теперь у нас при получении данных с сервера возникает ситуация, при которой на старте приложения у нас НЕ
+  // отрисовывается основной контент (сортировка + список точек маршрута).
+  // Причиной такого поведения является тот факт, что получение данных с сервера это асинхронная операция и
+  // она выполняется после основной отрисовки, поэтому мы вынуждены изменить СЕТТЕР в модели: теперь каждая "установка"
+  // данных в модели будет провоцировать возникновение события, оповещать о нём наблюдателей( чтобы вызывать перерисовку)
+  setTripPoints(updateType, tripPoints) {
     this._tripPoints = tripPoints.slice();
+    this._notify(updateType);
   }
 
   getTripPoints() {
@@ -69,5 +76,52 @@ export default class TripPointsModel extends Observer {
     // но это ещё не всё! так как мы обновили данные модели, мы должны уведомить всех наблюдателей-подписчиков
     // с передаваемыми в метод аргументами пока не ясно ничего...
     this._notify(updateType, update);
+  }
+
+  // после того, как мы начали работать с данными, которые приходят с сервера, мы убедились в том, что
+  // сами структуры данных и названия свойств отличаются и поэтому нам нужно написать АДАПТЕРЫ
+  // это будут статические методы моделей (почему статические? ХЗ)
+  // АДАПТЕР №1: СЕРВЕР => ЛОКАЛЬНЫЙ ФОРМАТ
+  static adaptToClient (tripPoint) {
+    // для того, чтобы адаптировать полученный с сервера объект к тому, с чем умеет работать наш код
+    // воспользуемся проверенным методом, при котором используем Object.assign + пустой объект + входной объект
+    // + подмешиваем/меняем то, что нам нужно для обеспечения совместимости
+    const adaptedTripPoint = Object.assign(
+      {},
+      tripPoint,
+      // здесь мы добавим в объект нужные нам свойства
+      {
+        price: tripPoint.base_price ? Number(tripPoint.base_price) : tripPoint.base_price,
+        beginDate: tripPoint.date_from ? new Date(tripPoint.date_from) : tripPoint.date_from,
+        endDate: tripPoint.date_to ? new Date(tripPoint.date_to) : tripPoint.date_to,
+        isFavorite: tripPoint.is_favorite,
+      },
+    );
+    // а здесь - удалим ненужные
+    delete adaptedTripPoint.base_price;
+    delete adaptedTripPoint.date_from;
+    delete adaptedTripPoint.date_to;
+    delete adaptedTripPoint.is_favorite;
+
+    return adaptedTripPoint;
+  }
+  // АДАПТЕР №2: ЛОКАЛЬНЫЙ ФОРМАТ => СЕРВЕР
+  static adaptToServer (tripPoint) {
+    const adaptedTripPoint = Object.assign(
+      {},
+      tripPoint,
+      {
+        'base_price': tripPoint.price ? Number(tripPoint.price) : tripPoint.price,
+        'date_from': tripPoint.beginDate instanceof Date ? tripPoint.beginDate.toISOString() : null,
+        'date_to': tripPoint.endDate instanceof Date ? tripPoint.endDate.toISOString() : null,
+        'is_favorite': tripPoint.isFavorite,
+      },
+    );
+    delete adaptedTripPoint.price;
+    delete adaptedTripPoint.beginDate;
+    delete adaptedTripPoint.endDate;
+    delete adaptedTripPoint.isFavorite;
+
+    return adaptedTripPoint;
   }
 }

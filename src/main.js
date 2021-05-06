@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
 import TripBoardPresenter from './presenter/trip-board.js';
-import { generateDestinations, generateOffers, generateTripPoints } from './mock/trip-point-mock.js';
 import TripPointsModel from './model/trip-points';
 import OffersModel from './model/offers';
 import DestinationsModel from './model/destinations';
@@ -11,9 +10,12 @@ import TripInfoPresenter from './presenter/trip-info.js';
 import SiteMenuPresenter from './presenter/site-menu.js';
 import MenuModel from './model/site-menu.js';
 import StatisticsPresenter from './presenter/statistics.js';
-import { MenuType } from './const.js';
+import { MenuType, UpdateType } from './const.js';
+import Api from './api.js';
 
-const EVENT_COUNT = 10;
+// объявим константы, которые нужны для создания экземпляра класса Api
+const AUTHORIZATION = 'Basic 0JDRgNC-0LzQsNGC0L3QsNGP0JHQvtC80LbQuNGF0LA2NjY';
+const END_POINT = 'https://14.ecmascript.pages.academy/big-trip';
 
 // находим DOM-элементы
 const tripMainElement = document.querySelector('.trip-main');
@@ -23,11 +25,11 @@ const siteMenuContainer = tripMainElement.querySelector('.trip-controls__navigat
 const filtersContainer = tripMainElement.querySelector('.trip-controls__filters');
 const mainContentContainer = document.querySelector('.page-main__container');
 
-//генерим  моки
-const destinations = generateDestinations();
-const eventTypeToOffersMap = generateOffers();
-const tripPointsMocks = generateTripPoints(EVENT_COUNT, destinations, eventTypeToOffersMap);
-const prettyMocks = Array.from(tripPointsMocks.values()).sort((firstTripPoint, secondTripPoint) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
+// ВНИМАНИЕ! Экземпляр класса Api мы будем создавать прямо в точке входа и далее с ним работать.
+// На лайве было сказано, что такое использование класса API для работы с сервером - НЕ канон.
+// По-нормальному от этого класса должны наследоваться классы моделей и уже на их экзеплярах
+// «дёргаться» нужные «сетевые» методы.
+const api = new Api(END_POINT, AUTHORIZATION);
 
 // создаём модели наших структур
 const menuModel = new MenuModel();
@@ -37,10 +39,27 @@ const destinationsModel = new DestinationsModel();
 const filtersModel = new FiltersModel();
 const sortModel = new SortModel();
 
-// теперь у нас есть модели, но они пустые, поэтому воспользуемся их интерфейсами для инициализации данных
-tripPointsModel.setTripPoints(prettyMocks);
-offersModel.setOffers(eventTypeToOffersMap);
-destinationsModel.setDestinations(destinations);
+// получаем данные с сервера и записываем их в модели
+const destinations = api.getDestinations();
+const offers = api.getOffers();
+const tripPoints = api.getTripPoints();
+
+Promise.all([destinations, offers, tripPoints])
+  .then((results) => {
+    destinationsModel.setDestinations(results[0]);
+    offersModel.setOffers(results[1]);
+    const sortedTripPoints = results[2]
+      .sort((firstTripPoint, secondTripPoint) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));
+    tripPointsModel.setTripPoints(UpdateType.INIT, sortedTripPoints);
+  })
+  .then(() => {
+    // сделаем как в демо-проекте: не будем отрисовывать контролы пока не получим все данные с сервера
+    const siteMenuPresenter = new SiteMenuPresenter(siteMenuContainer, menuModel, sortModel, switchTableStatsTabs);
+    siteMenuPresenter.init();
+    const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel);
+    filtersPresenter.init();
+  })
+  .catch(() => alert('Возникла ошибка при загрузке данных с сервера. Попробуйте обновить страницу'));
 
 const switchTableStatsTabs = (currentTab) => {
   switch (currentTab) {
@@ -57,14 +76,9 @@ const switchTableStatsTabs = (currentTab) => {
   }
 };
 
-// рендерим моки
 const tripInfoPresenter = new TripInfoPresenter(tripInfoContainer, tripPointsModel);
 tripInfoPresenter.init();
-const siteMenuPresenter = new SiteMenuPresenter(siteMenuContainer, menuModel, sortModel, switchTableStatsTabs);
-siteMenuPresenter.init();
-const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel);
-filtersPresenter.init();
-const tripBoardPresenter = new TripBoardPresenter(mainContentContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel);
+const tripBoardPresenter = new TripBoardPresenter(mainContentContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel, api);
 tripBoardPresenter.init();
 const statisticsPresenter = new StatisticsPresenter(mainContentContainer, tripPointsModel);
 

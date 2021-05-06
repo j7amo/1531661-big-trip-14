@@ -16,4 +16,8 @@ export default class DestinationsModel extends Observer {
   getDestinations() {
     return this._destinations;
   }
+
+  static adaptToClient (destinations) {
+    return new Map(destinations.map((destination) => [destination.name, destination]));
+  }
 }
