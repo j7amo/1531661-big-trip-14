@@ -183,10 +183,10 @@ export default class TripBoardPresenter {
         this._api.updateTripPoint(update).then((response) => this._tripPointsModel.updateTripPoint(updateType, response));
         break;
       case UserAction.ADD_TRIP_POINT:
-        this._tripPointsModel.addTripPoint(updateType, update);
+        this._api.addTripPoint(update).then((response) => this._tripPointsModel.addTripPoint(updateType, response));
         break;
       case UserAction.DELETE_TRIP_POINT:
-        this._tripPointsModel.deleteTripPoint(updateType, update);
+        this._api.deleteTripPoint(update).then(() => this._tripPointsModel.deleteTripPoint(updateType, update));
         break;
     }
   }
