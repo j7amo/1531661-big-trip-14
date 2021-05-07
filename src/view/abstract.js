@@ -1,5 +1,7 @@
 import { createNewElement } from '../utils/render.js';
 
+const SHAKE_ANIMATION_TIMEOUT = 600;
+
 // абстрактный родительский класс для всех ВЬЮХ
 // вьюхи, судя по тому материалу, который был дан на первых 5 лайвах, будут "тупыми" и только будут уметь:
 // 1) отрисовать себя(то есть дать утилитарному методу render готовый DOM-элемент = разметка с данными).
@@ -30,6 +32,15 @@ export default class Abstract {
   removeElement() {
     this._element = null;
   }
-  // в абстрактном классе не объявляем никаких методов по теме регистрации подписчиков, так как
-  // в дочерних классах методы будут иметь разные названия
+
+  // объявим метод shake (под него в style.css уже написана соответствующая анимация shake)
+  // метод принимает коллбэк, записывает в стиль вьюхи анимацию, затем через setTimeout удаляет этот стиль с элемента
+  // и вызывает переданный снаружи коллбэк
+  shake(callback) {
+    this.getElement().style.animation = `shake ${SHAKE_ANIMATION_TIMEOUT / 1000}s`;
+    setTimeout(() => {
+      this.getElement().style.animation = '';
+      callback();
+    }, SHAKE_ANIMATION_TIMEOUT);
+  }
 }

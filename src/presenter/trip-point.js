@@ -9,6 +9,12 @@ const Mode = {
   EDITING: 'EDITING',
 };
 
+const State = {
+  SAVING: 'SAVING',
+  DELETING: 'DELETING',
+  ABORTING: 'ABORTING',
+};
+
 export default class TripPointPresenter {
   // модифицируем конструктор презентера точки маршрута так, чтобы он принимал тот самый переданный из презентера
   // доски метод, который обновляет данные (модель), а также метод, который позволяет грамотно разрешить ситуацию с
@@ -80,7 +86,8 @@ export default class TripPointPresenter {
     }
 
     if (this._mode === Mode.EDITING) {
-      replace(this._tripPointEditFormComponent, this._prevTripPointEditFormComponent);
+      replace(this._tripPointCardComponent, this._prevTripPointEditFormComponent);
+      this._mode = Mode.DEFAULT;
     }
 
     // предыдущие версии компонентов удаляем
@@ -99,6 +106,43 @@ export default class TripPointPresenter {
   resetView() {
     if (this._mode === Mode.EDITING) {
       this._switchFromFormToCard();
+    }
+  }
+
+  setViewState(state) {
+    // добавим локальный метод, который будем использовать исключительно в рамках метода setViewState
+    // данный метод будет сбрасывать состояние вьюхи к базовому(когда ничего не заблокировано и дефолтные надписи на кнопках)
+    const resetViewState = () => {
+      this._tripPointEditFormComponent.updateState({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+    // switch здесь используем для того, чтобы правильно обновить состояние вьюхи в зависимости от того, какой процесс
+    // сейчас происходит
+    switch (state) {
+      case State.SAVING:
+        this._tripPointEditFormComponent.updateState({
+          isDisabled: true,
+          isSaving: true,
+        });
+        break;
+      case State.DELETING:
+        this._tripPointEditFormComponent.updateState({
+          isDisabled: true,
+          isDeleting: true,
+        });
+        break;
+        // добавим ветку на тот случай, когда у нас что-то пошло не так при попытке отправить обновлённые/добавленные
+        // данные на сервер
+        // в этом случае мы будем:
+        // 1) "трясти" форму / карточку
+        // 2) вызывать коллбэк, который сбросит состояние вьюхи на дефолтное
+      case State.ABORTING:
+        this._tripPointCardComponent.shake(resetViewState);
+        this._tripPointEditFormComponent.shake(resetViewState);
+        break;
     }
   }
 
@@ -182,7 +226,7 @@ export default class TripPointPresenter {
       UpdateType.MINOR,
       tripPoint,
     );
-    this._switchFromFormToCard();
+    //this._switchFromFormToCard();
   }
 
   // обработчик события click кнопки delete, когда пункт маршрута в представлении формы редактирования
@@ -194,3 +238,5 @@ export default class TripPointPresenter {
     );
   }
 }
+
+export { State };

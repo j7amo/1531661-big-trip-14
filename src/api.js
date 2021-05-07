@@ -7,6 +7,8 @@ import DestinationsModel from './model/destinations.js';
 const Method = {
   GET: 'GET',
   PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
 };
 
 // заведём перечисление для максимального и минимального значения статуса HTTP-запроса (это нужно для fetch, так как
@@ -56,6 +58,24 @@ export default class Api {
     })
       .then(Api.toJSON)
       .then(TripPointsModel.adaptToClient);
+  }
+
+  addTripPoint(tripPoint) {
+    return this._load({
+      url: 'points',
+      method: Method.POST,
+      body: JSON.stringify(TripPointsModel.adaptToServer(tripPoint)),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    })
+      .then(Api.toJSON)
+      .then(TripPointsModel.adaptToClient);
+  }
+
+  deleteTripPoint(tripPoint) {
+    return this._load({
+      url: `points/${tripPoint.id}`,
+      method: Method.DELETE,
+    });
   }
 
   // в приватном методе _load мы будем на вход подавать

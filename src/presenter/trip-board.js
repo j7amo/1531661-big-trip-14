@@ -5,7 +5,7 @@ import {remove, render, RenderPosition} from '../utils/render.js';
 import {filter} from '../utils/filters.js';
 import {FilterType, UpdateType, UserAction} from '../const.js';
 import {sort} from '../utils/sort.js';
-import TripPointPresenter from './trip-point.js';
+import TripPointPresenter, { State as TripPointViewState } from './trip-point.js';
 import SortPresenter from './sort.js';
 import TripPointAddPresenter from './trip-point-add.js';
 import LoadingView from '../view/loading.js';
@@ -180,13 +180,22 @@ export default class TripBoardPresenter {
         // 3) этим ответом обновить в локальной модели соответствующую точку маршрута
         // Всё это будет возможно потому, что на всех этапах у нас есть ID'шник точки маршрута и поэтому
         // обновлять/получать мы будем конкретную точку
-        this._api.updateTripPoint(update).then((response) => this._tripPointsModel.updateTripPoint(updateType, response));
+        this._tripPointPresenters[update.id].setViewState(TripPointViewState.SAVING);
+        this._api.updateTripPoint(update)
+          .then((response) => this._tripPointsModel.updateTripPoint(updateType, response))
+          .catch(() => this._tripPointPresenters[update.id].setViewState(TripPointViewState.ABORTING));
         break;
       case UserAction.ADD_TRIP_POINT:
-        this._tripPointsModel.addTripPoint(updateType, update);
+        this._tripPointAddPresenter.setSaving();
+        this._api.addTripPoint(update)
+          .then((response) => this._tripPointsModel.addTripPoint(updateType, response))
+          .catch(() => this._tripPointAddPresenter.setAborting());
         break;
       case UserAction.DELETE_TRIP_POINT:
-        this._tripPointsModel.deleteTripPoint(updateType, update);
+        this._tripPointPresenters[update.id].setViewState(TripPointViewState.DELETING);
+        this._api.deleteTripPoint(update)
+          .then(() => this._tripPointsModel.deleteTripPoint(updateType, update))
+          .catch(() => this._tripPointPresenters[update.id].setViewState(TripPointViewState.ABORTING));
         break;
     }
   }

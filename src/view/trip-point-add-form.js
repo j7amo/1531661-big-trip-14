@@ -11,6 +11,8 @@ const createTripPointCreationFormTemplate = (tripPoint, getEventTypesPickerMarku
     destination: currentDestination,
     id: currentId,
     type: currentType,
+    isDisabled,
+    isSaving,
   } = tripPoint;
 
   return `<li class="trip-events__item">
@@ -22,7 +24,7 @@ const createTripPointCreationFormTemplate = (tripPoint, getEventTypesPickerMarku
             <span class="visually-hidden">Choose event type</span>
             <img class="event__type-icon" width="17" height="17" src="img/icons/${currentType}.png" alt="Event type icon">
           </label>
-          <input class="event__type-toggle  visually-hidden" id="event-type-edit-toggle-1" type="checkbox">
+          <input class="event__type-toggle  visually-hidden" id="event-type-edit-toggle-1" type="checkbox" ${ isDisabled ? 'disabled' : ''}>
 
           <div class="event__type-list">
             <fieldset class="event__type-group">
@@ -36,7 +38,7 @@ const createTripPointCreationFormTemplate = (tripPoint, getEventTypesPickerMarku
           <label class="event__label  event__type-output" for="event-destination-1">
             ${currentType}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination ? he.encode(currentDestination.name) : ''}" list="destination-list-1">
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination ? he.encode(currentDestination.name) : ''}" list="destination-list-1" ${ isDisabled ? 'disabled' : ''}>
           <datalist id="destination-list-1">
             ${getDestinationOptionsMarkup()}
           </datalist>
@@ -44,10 +46,10 @@ const createTripPointCreationFormTemplate = (tripPoint, getEventTypesPickerMarku
 
         <div class="event__field-group  event__field-group--time">
           <label class="visually-hidden" for="event-start-time-1">From</label>
-          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${currentBeginDate ? currentBeginDate : ''}">
+          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${currentBeginDate ? currentBeginDate : ''}" ${ isDisabled ? 'disabled' : ''}>
           &mdash;
           <label class="visually-hidden" for="event-end-time-1">To</label>
-          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${currentEndDate ? currentEndDate : ''}">
+          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${currentEndDate ? currentEndDate : ''}" ${ isDisabled ? 'disabled' : ''}>
         </div>
 
         <div class="event__field-group  event__field-group--price">
@@ -55,11 +57,15 @@ const createTripPointCreationFormTemplate = (tripPoint, getEventTypesPickerMarku
             <span class="visually-hidden">Price</span>
             &euro;
           </label>
-          <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${currentPrice ? currentPrice : ''}">
+          <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${currentPrice ? currentPrice : ''}" ${ isDisabled ? 'disabled' : ''}>
         </div>
 
-        <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-        <button class="event__reset-btn" type="reset">Cancel</button>
+        <button class="event__save-btn  btn  btn--blue" type="submit" ${ isDisabled ? 'disabled' : ''}>
+          ${ isSaving ? 'Saving...' : 'Save' }
+        </button>
+        <button class="event__reset-btn" type="reset" ${ isDisabled ? 'disabled' : ''}>
+          Cancel
+        </button>
         <span class="visually-hidden">Open event</span>
         </button>
       </header>

@@ -48,7 +48,26 @@ export default class TripPointAddPresenter {
       UpdateType.MINOR,
       tripPoint,
     );
-    this.destroy();
+    //this.destroy();
     document.querySelector('.trip-main__event-add-btn').disabled = false;
+  }
+
+  setSaving() {
+    this._tripPointAddComponent.updateState({
+      isDisabled: true,
+      isSaving: true,
+    });
+  }
+
+  setAborting() {
+    const resetFormState = () => {
+      this._tripPointAddComponent.updateState({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this._tripPointAddComponent.shake(resetFormState);
   }
 }
