@@ -277,12 +277,23 @@ export default class AbstractForm extends AbstractSmartView {
         // так как Object.assign не предлагает функционал глубокого копирования, то если у нас в объекте имеются другие
         // вложенные объекты, нам нужно позаботиться о том, чтобы в состояние ТАКЖЕ ПОПАЛИ ИХ КОПИИ!
         offers: tripPoint.offers.slice(),
+        // "подмешиваем" флаги состояния форм (как редактирования, так и создания точки маршрута)
+        // это позволит нам дополнительно влиять на разметку форм
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
       },
     );
   }
 
   static parseStateDataToTripPoint(stateData) {
-    return Object.assign({}, stateData);
+    stateData =  Object.assign({}, stateData);
+    // удаляем ранее "подмешанные" флаги
+    delete stateData.isDisabled;
+    delete stateData.isSaving;
+    delete stateData.isDeleting;
+
+    return stateData;
   }
 
   // объявим метод для сброса состояния вьюхи на случай, если пользователь не хочет сохранять то, что он ввёл
@@ -340,7 +351,7 @@ export default class AbstractForm extends AbstractSmartView {
   // объявим метод, который будет получать из словаря (тип точки маршрута - список доступных опций/предложений) разметку
   // для отображения доступных для данного типа точки маршрута предложений
   // небольшой нюанс: сразу же проверим какие предложения в пришедших данных уже были выбраны и выберем соотв.чекбоксы
-  _initAvailableOffersMarkup() {
+  _initAvailableOffersMarkup(isDisabled) {
     let availableOffersOptionsMarkup = '';
     const selectedOffers = this._stateData.offers;
     const availableOffers = this._eventTypeToOffersMap.get(this._stateData.type).offers;
@@ -349,7 +360,7 @@ export default class AbstractForm extends AbstractSmartView {
       const isAvailableOfferSelected = selectedOffers.some((selectedOffer) => (availableOffers[i].title === selectedOffer.title && availableOffers[i].price === selectedOffer.price));
       const checkboxChecked = isAvailableOfferSelected ? 'checked' : '';
       const offerTemplate = `<div class="event__offer-selector">
-      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${this._stateData.type}" ${checkboxChecked}>
+      <input class="event__offer-checkbox  visually-hidden" id="event-offer-${randomId}-1" type="checkbox" name="event-offer-${this._stateData.type}" ${checkboxChecked} ${ isDisabled ? 'disabled' : ''}>
       <label class="event__offer-label" for="event-offer-${randomId}-1">
         <span class="event__offer-title">${availableOffers[i].title}</span>
         &plus;&euro;&nbsp;
