@@ -8,6 +8,7 @@ import {sort} from '../utils/sort.js';
 import TripPointPresenter from './trip-point.js';
 import SortPresenter from './sort.js';
 import TripPointAddPresenter from './trip-point-add.js';
+import LoadingView from '../view/loading.js';
 
 // Общая концепция паттерна MVP, если я правильно понимаю, заключается в следующем:
 // ============================
@@ -57,7 +58,7 @@ import TripPointAddPresenter from './trip-point-add.js';
 
 export default class TripBoardPresenter {
   // конструктор будет получать контейнер, в который будем рендерить саму доску и точки маршрута
-  constructor(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel) {
+  constructor(tripBoardContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel, api) {
     this._tripBoardContainer = tripBoardContainer;
     // при создании экземпляра доски будем сразу создавать view-компоненты для отрисовки:
     // - самой доски;
@@ -66,7 +67,8 @@ export default class TripBoardPresenter {
     // - заглушки, которая будет отображаться на случай отсутствия точек маршрута в принципе.
     // p.s. Что касается ПРЕДСТАВЛЕНИЯ самой поездки, то это оно будет отдельным,
     // так как это самостоятельная единица со своей логикой
-    //this._sortComponent = null;
+    this._isLoading = true;
+    this._loadingComponent = new LoadingView();
     this._tripBoardComponent = new TripBoardView();
     this._tripPointsListComponent = new TripPointsListView();
     this._noTripPointsComponent = new NoTripPointsView();
@@ -97,6 +99,8 @@ export default class TripBoardPresenter {
     this._tripPointsModel = tripPointsModel;
     this._offersModel = offersModel;
     this._destinationsModel = destinationsModel;
+    // Добавляем работу с сетевым Api
+    this._api = api;
     // "прибиваем" обработчики действий пользователя на вьюхе
     this._handleViewAction = this._handleViewAction.bind(this);
     //  и событий модели
@@ -104,7 +108,6 @@ export default class TripBoardPresenter {
 
     this._handleModeChange = this._handleModeChange.bind(this);
     //this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
-
 
     this._tripPointAddPresenter = new TripPointAddPresenter(this._tripPointsListComponent, this._handleViewAction, this._offersModel, this._destinationsModel);
   }
@@ -171,7 +174,13 @@ export default class TripBoardPresenter {
     // делаем вилку вызовов методов модели в зависимости от действий пользователя (у нас их всего 3)
     switch(actionType) {
       case UserAction.UPDATE_TRIP_POINT:
-        this._tripPointsModel.updateTripPoint(updateType, update);
+        // теперь с появлением взаимодействия с сервером нам надо при обновлении точки маршрута:
+        // 1) обновить её на сервере
+        // 2) получить положительный ответ от сервера
+        // 3) этим ответом обновить в локальной модели соответствующую точку маршрута
+        // Всё это будет возможно потому, что на всех этапах у нас есть ID'шник точки маршрута и поэтому
+        // обновлять/получать мы будем конкретную точку
+        this._api.updateTripPoint(update).then((response) => this._tripPointsModel.updateTripPoint(updateType, response));
         break;
       case UserAction.ADD_TRIP_POINT:
         this._tripPointsModel.addTripPoint(updateType, update);
@@ -209,6 +218,12 @@ export default class TripBoardPresenter {
         this._clearTripBoard();
         this._renderTripBoard();
         break;
+      case UpdateType.INIT:
+        // в данной ветке делаем самую первую после получения данных с сервера отрисовку доски со всеми прибамбасами
+        this._isLoading = false;
+        remove(this._loadingComponent);
+        this._renderTripBoard();
+        break;
     }
   }
 
@@ -232,6 +247,7 @@ export default class TripBoardPresenter {
     this._tripPointPresenters = {};
     this._sortPresenters.forEach((sortPresenter) => sortPresenter.destroy());
     this._sortPresenters = [];
+    remove(this._loadingComponent);
     remove(this._noTripPointsComponent);
   }
 
@@ -269,14 +285,22 @@ export default class TripBoardPresenter {
     this._tripPointPresenters[tripPoint.id] = tripPointPresenter;
   }
 
-
-  // Метод для рендеринга заглушки
+  // Метод для рендеринга заглушки (добавление первой точки маршрута, если их список пустой)
   _renderNoTripPoints() {
     render(this._tripPointsListComponent, this._noTripPointsComponent, RenderPosition.AFTERBEGIN);
   }
 
+  // Метод для рендеринга заглушки (на случай, если данные ещё НЕ загрузились с сервера)
+  _renderLoading() {
+    render(this._tripPointsListComponent, this._loadingComponent, RenderPosition.AFTERBEGIN);
+  }
+
   // Метод для отрисовки "полезной" части доски - сортировки - точек маршрута
   _renderTripBoard() {
+    if (this._isLoading) {
+      this._renderLoading();
+      return;
+    }
     const tripPoints = this._getTripPoints();
     const eventOffers = this._getOffers();
     const destinations = this._getDestinations();

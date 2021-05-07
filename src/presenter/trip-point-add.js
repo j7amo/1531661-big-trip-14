@@ -7,8 +7,8 @@ export default class TripPointAddPresenter {
   constructor(tripPointsListContainer, changeData, offersModel, destinationsModel) {
     this._tripPointsListContainer = tripPointsListContainer;
     this._changeData = changeData;
-    this._offersModel = offersModel.getOffers();
-    this._destinationsModel = destinationsModel.getDestinations();
+    this._offersModel = offersModel;
+    this._destinationsModel = destinationsModel;
     this._tripPointAddComponent = null;
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
     this._handleFormCancelClick = this._handleFormCancelClick.bind(this);
@@ -16,7 +16,7 @@ export default class TripPointAddPresenter {
   }
 
   init() {
-    this._tripPointAddComponent = new TripPointAddFormView(this._offersModel, this._destinationsModel);
+    this._tripPointAddComponent = new TripPointAddFormView(this._offersModel.getOffers(), this._destinationsModel.getDestinations());
     this._tripPointAddComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointAddComponent.setFormCancelHandler(this._handleFormCancelClick);
     render(this._tripPointsListContainer, this._tripPointAddComponent, RenderPosition.AFTERBEGIN);
