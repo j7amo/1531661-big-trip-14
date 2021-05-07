@@ -109,7 +109,6 @@ export default class TripBoardPresenter {
     this._handleModeChange = this._handleModeChange.bind(this);
     //this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
 
-
     this._tripPointAddPresenter = new TripPointAddPresenter(this._tripPointsListComponent, this._handleViewAction, this._offersModel, this._destinationsModel);
   }
 

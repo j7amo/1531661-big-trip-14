@@ -58,6 +58,12 @@ Promise.all([destinations, offers, tripPoints])
     siteMenuPresenter.init();
     const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel);
     filtersPresenter.init();
+    // подписываем обработчик клика по кнопке добавления новой точки маршрута
+    tripPointAddButton.addEventListener('click', (evt) => {
+      evt.preventDefault();
+      tripBoardPresenter.createTripPoint();
+      tripPointAddButton.disabled = true;
+    });
   })
   .catch(() => alert('Возникла ошибка при загрузке данных с сервера. Попробуйте обновить страницу'));
 
@@ -81,10 +87,3 @@ tripInfoPresenter.init();
 const tripBoardPresenter = new TripBoardPresenter(mainContentContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel, api);
 tripBoardPresenter.init();
 const statisticsPresenter = new StatisticsPresenter(mainContentContainer, tripPointsModel);
-
-// подписываем обработчик клика по кнопке добавления новой точки маршрута
-tripPointAddButton.addEventListener('click', (evt) => {
-  evt.preventDefault();
-  tripBoardPresenter.createTripPoint();
-  tripPointAddButton.disabled = true;
-});
