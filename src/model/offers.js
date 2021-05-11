@@ -21,7 +21,7 @@ export default class OffersModel extends Observer {
     return new Map(offers.map((offer) => [offer.type, offer]));
   }
 
-  // static adaptToServer (offers) {
-  //   return Array.from(offers.values());
-  // }
+  static adaptToServer (offers) {
+    return Array.from(offers.values());
+  }
 }

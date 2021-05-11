@@ -158,12 +158,6 @@ export default class TripBoardPresenter {
     return this._destinationsModel.getDestinations();
   }
 
-  // объявим метод обработки события ЛЮБОГО изменения(типа события, направления, дат, цены, доп.предложений) точки маршрута
-  // Это и есть ИЗМЕНЕНИЕ ДАННЫХ в ответ на действия ПОЛЬЗОВАТЕЛЯ.
-  // _handleTripPointChange(updatedTripPoint) {
-  //   this._tripPointPresenters[updatedTripPoint.id].init(updatedTripPoint/*, this._eventTypeToOffersMap, this._destinations*/);
-  // }
-
   // заменим метод _handleTripPointChange на обработчик ЛЮБОГО пользовательского действия (пока непонятно как это возможно,
   // слишком абстрактно звучит...)
   // Что касается параметров метода, то они такие:

@@ -1,4 +1,3 @@
-// объявим константы для формирования наименования локального хранилища
 const CACHE_PREFIX = 'bigtrip-cache';
 const CACHE_VER = 'v14';
 const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VER}`;
@@ -75,6 +74,8 @@ self.addEventListener('activate', (evt) => {
 
 const handleFetch = (evt) => {
   const {request} = evt;
+  // console.log('request: ');
+  // console.log(request);
 
   evt.respondWith(
     caches.match(request)

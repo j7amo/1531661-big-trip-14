@@ -78,6 +78,17 @@ export default class Api {
     });
   }
 
+  // добавим метод синхронизации
+  sync(data) {
+    return this._load({
+      url: 'points/sync',
+      method: Method.POST,
+      body: JSON.stringify(data),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    })
+      .then(Api.toJSON);
+  }
+
   // в приватном методе _load мы будем на вход подавать
   // - URL сервера,
   // - метод (по умолчанию будет GET, другие методы можно будет вызывать при их явной передаче в метод _load),

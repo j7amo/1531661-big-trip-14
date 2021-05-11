@@ -2,6 +2,8 @@ import TripPointView from '../view/trip-point.js';
 import TripPointEditFormView from '../view/trip-point-edit.js';
 import {remove, render, RenderPosition, replace} from '../utils/render.js';
 import { UserAction, UpdateType } from '../const.js';
+import { isOnline } from '../utils/common.js';
+import { toast } from '../utils/toast.js';
 
 // заведём перечисление режимов точек маршрута
 const Mode = {
@@ -208,6 +210,10 @@ export default class TripPointPresenter {
 
   // обработчик события click треугольной кнопки, когда пункт маршрута в обычном представлении
   _handleCardEditClick() {
+    if (!isOnline()) {
+      toast('You can\'t edit trip point while offline');
+      return;
+    }
     this._switchFromCardToForm();
   }
 
@@ -221,16 +227,23 @@ export default class TripPointPresenter {
   _handleFormSubmit(tripPoint) {
     // теперь при submit'е формы мы также обновляем данные (предполагается, что пользователь, раз он был в форме
     // редактирования и нажал submit, то он что-то поменял, значит, данные надо обновить
+    if (!isOnline()) {
+      toast('You can\'t save trip point while offline');
+      return;
+    }
     this._changeData(
       UserAction.UPDATE_TRIP_POINT,
       UpdateType.MINOR,
       tripPoint,
     );
-    //this._switchFromFormToCard();
   }
 
   // обработчик события click кнопки delete, когда пункт маршрута в представлении формы редактирования
   _handleFormDeleteClick(tripPoint) {
+    if (!isOnline()) {
+      toast('You can\'t delete trip point while offline');
+      return;
+    }
     this._changeData(
       UserAction.DELETE_TRIP_POINT,
       UpdateType.MINOR,
