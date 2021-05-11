@@ -11,7 +11,7 @@ import SiteMenuPresenter from './presenter/site-menu.js';
 import MenuModel from './model/site-menu.js';
 import StatisticsPresenter from './presenter/statistics.js';
 import { MenuType, UpdateType } from './const.js';
-import Api from './api.js';
+import Api from './api/api.js';
 
 // объявим константы, которые нужны для создания экземпляра класса Api
 const AUTHORIZATION = 'Basic 0JDRgNC-0LzQsNGC0L3QsNGP0JHQvtC80LbQuNGF0LA2NjY';
@@ -87,3 +87,8 @@ tripInfoPresenter.init();
 const tripBoardPresenter = new TripBoardPresenter(mainContentContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel, api);
 tripBoardPresenter.init();
 const statisticsPresenter = new StatisticsPresenter(mainContentContainer, tripPointsModel);
+
+// подпишем на загрузку страницы коллбэк регистрации нашего SW
+window.addEventListener('load', () => {
+  navigator.serviceWorker.register('/sw.js');
+});

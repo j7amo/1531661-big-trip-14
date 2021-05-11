@@ -1,7 +1,7 @@
 // в этом модуле опишем API взаимодействия с сервером
-import TripPointsModel from './model/trip-points.js';
-import OffersModel from './model/offers.js';
-import DestinationsModel from './model/destinations.js';
+import TripPointsModel from '../model/trip-points.js';
+import OffersModel from '../model/offers.js';
+import DestinationsModel from '../model/destinations.js';
 
 // заведём перечисление для типов используемых методов HTTP-запросов
 const Method = {
