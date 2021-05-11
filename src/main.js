@@ -11,11 +11,23 @@ import SiteMenuPresenter from './presenter/site-menu.js';
 import MenuModel from './model/site-menu.js';
 import StatisticsPresenter from './presenter/statistics.js';
 import { MenuType, UpdateType } from './const.js';
-import Api from './api.js';
+import Api from './api/api.js';
+import { isOnline } from './utils/common.js';
+import { toast } from './utils/toast.js';
+import Store from './api/store.js';
+import Provider from './api/provider.js';
 
 // объявим константы, которые нужны для создания экземпляра класса Api
 const AUTHORIZATION = 'Basic 0JDRgNC-0LzQsNGC0L3QsNGP0JHQvtC80LbQuNGF0LA2NjY';
 const END_POINT = 'https://14.ecmascript.pages.academy/big-trip';
+
+const TRIP_POINTS_STORAGE_PREFIX = 'bigtrip-points-localstorage';
+const OFFERS_STORAGE_PREFIX = 'bigtrip-offers-localstorage';
+const DESTINATIONS_STORAGE_PREFIX = 'bigtrip-destinations-localstorage';
+const STORAGE_VER = 'v14';
+const TRIP_POINTS_STORAGE_NAME = `${TRIP_POINTS_STORAGE_PREFIX}-${STORAGE_VER}`;
+const OFFERS_STORAGE_NAME = `${OFFERS_STORAGE_PREFIX}-${STORAGE_VER}`;
+const DESTINATIONS_STORAGE_NAME = `${DESTINATIONS_STORAGE_PREFIX}-${STORAGE_VER}`;
 
 // находим DOM-элементы
 const tripMainElement = document.querySelector('.trip-main');
@@ -30,6 +42,10 @@ const mainContentContainer = document.querySelector('.page-main__container');
 // По-нормальному от этого класса должны наследоваться классы моделей и уже на их экзеплярах
 // «дёргаться» нужные «сетевые» методы.
 const api = new Api(END_POINT, AUTHORIZATION);
+const tripPointsStorage = new Store(TRIP_POINTS_STORAGE_NAME, window.localStorage);
+const offersStorage = new Store(OFFERS_STORAGE_NAME, window.localStorage);
+const destinationsStorage = new Store(DESTINATIONS_STORAGE_NAME, window.localStorage);
+const apiWithProvider = new Provider(api, tripPointsStorage, offersStorage, destinationsStorage);
 
 // создаём модели наших структур
 const menuModel = new MenuModel();
@@ -40,9 +56,9 @@ const filtersModel = new FiltersModel();
 const sortModel = new SortModel();
 
 // получаем данные с сервера и записываем их в модели
-const destinations = api.getDestinations();
-const offers = api.getOffers();
-const tripPoints = api.getTripPoints();
+const destinations = apiWithProvider.getDestinations();
+const offers = apiWithProvider.getOffers();
+const tripPoints = apiWithProvider.getTripPoints();
 
 Promise.all([destinations, offers, tripPoints])
   .then((results) => {
@@ -61,6 +77,10 @@ Promise.all([destinations, offers, tripPoints])
     // подписываем обработчик клика по кнопке добавления новой точки маршрута
     tripPointAddButton.addEventListener('click', (evt) => {
       evt.preventDefault();
+      if (!isOnline()) {
+        toast('You can\'t create new trip point while offline');
+        return;
+      }
       tripBoardPresenter.createTripPoint();
       tripPointAddButton.disabled = true;
     });
@@ -84,6 +104,20 @@ const switchTableStatsTabs = (currentTab) => {
 
 const tripInfoPresenter = new TripInfoPresenter(tripInfoContainer, tripPointsModel);
 tripInfoPresenter.init();
-const tripBoardPresenter = new TripBoardPresenter(mainContentContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel, api);
+const tripBoardPresenter = new TripBoardPresenter(mainContentContainer, filtersModel, sortModel, tripPointsModel, offersModel, destinationsModel, apiWithProvider);
 tripBoardPresenter.init();
 const statisticsPresenter = new StatisticsPresenter(mainContentContainer, tripPointsModel);
+
+// подпишем на загрузку страницы коллбэк регистрации нашего SW
+window.addEventListener('load', () => {
+  navigator.serviceWorker.register('/sw.js');
+});
+
+window.addEventListener('online', () => {
+  document.title = document.title.replace(' [offline]', '');
+  apiWithProvider.sync();
+});
+
+window.addEventListener('offline', () => {
+  document.title += ' [offline]';
+});

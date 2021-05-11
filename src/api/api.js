@@ -1,7 +1,7 @@
 // в этом модуле опишем API взаимодействия с сервером
-import TripPointsModel from './model/trip-points.js';
-import OffersModel from './model/offers.js';
-import DestinationsModel from './model/destinations.js';
+import TripPointsModel from '../model/trip-points.js';
+import OffersModel from '../model/offers.js';
+import DestinationsModel from '../model/destinations.js';
 
 // заведём перечисление для типов используемых методов HTTP-запросов
 const Method = {
@@ -76,6 +76,17 @@ export default class Api {
       url: `points/${tripPoint.id}`,
       method: Method.DELETE,
     });
+  }
+
+  // добавим метод синхронизации
+  sync(data) {
+    return this._load({
+      url: 'points/sync',
+      method: Method.POST,
+      body: JSON.stringify(data),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    })
+      .then(Api.toJSON);
   }
 
   // в приватном методе _load мы будем на вход подавать
