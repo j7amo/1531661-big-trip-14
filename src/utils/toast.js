@@ -2,7 +2,7 @@ const SHOW_TIME = 5000;
 
 const toastContainer = document.createElement('div');
 toastContainer.classList.add('toast-container');
-document.body.append(toastContainer);
+document.body.prepend(toastContainer);
 
 const toast = (message) => {
   const toastItem = document.createElement('div');

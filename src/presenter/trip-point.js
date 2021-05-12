@@ -4,6 +4,7 @@ import {remove, render, RenderPosition, replace} from '../utils/render.js';
 import { UserAction, UpdateType } from '../const.js';
 import { isOnline } from '../utils/common.js';
 import { toast } from '../utils/toast.js';
+import dayjs from 'dayjs';
 
 // заведём перечисление режимов точек маршрута
 const Mode = {
@@ -231,6 +232,10 @@ export default class TripPointPresenter {
       toast('You can\'t save trip point while offline');
       return;
     }
+    // if (dayjs(tripPoint.beginDate).diff(dayjs(tripPoint.endDate)) > 0) {
+    //   toast('End date must be after begin date');
+    //   return;
+    // }
     this._changeData(
       UserAction.UPDATE_TRIP_POINT,
       UpdateType.MINOR,

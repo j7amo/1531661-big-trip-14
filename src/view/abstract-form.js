@@ -2,6 +2,8 @@ import AbstractSmartView from './smart-view.js';
 import { nanoid } from 'nanoid';
 import flatpickr from 'flatpickr';
 import '../../node_modules/flatpickr/dist/flatpickr.min.css';
+import dayjs from 'dayjs';
+import {toast} from '../utils/toast.js';
 
 // заведём константу для datePicker'а
 const DateType = {
@@ -123,6 +125,10 @@ export default class AbstractForm extends AbstractSmartView {
     // точки маршрута принимает аргумент - точку маршрута, то и здесь мы её должны передать
     // UPDATE: так как мы начали работать с состоянием вьюхи, то теперь мы должны изменить пришедшие данные с учётом состояния
     // вьюхи - для этого у нас появился специальный метод
+    if (dayjs(this._stateData.beginDate).diff(dayjs(this._stateData.endDate)) > 0) {
+      toast('End date must be after begin date');
+      return;
+    }
     this._callback.formSubmit(AbstractForm.parseStateDataToTripPoint(this._stateData));
     this._destroyBeginDatePicker();
     this._destroyEndDatePicker();
