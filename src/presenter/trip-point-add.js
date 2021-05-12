@@ -2,8 +2,8 @@
 import TripPointAddFormView from '../view/trip-point-add-form.js';
 import {remove, render, RenderPosition} from '../utils/render.js';
 import {UpdateType, UserAction} from '../const.js';
-import dayjs from "dayjs";
-import {toast} from "../utils/toast";
+import {toast} from '../utils/toast';
+import {isOnline} from '../utils/common';
 
 export default class TripPointAddPresenter {
   constructor(tripPointsListContainer, changeData, offersModel, destinationsModel) {
@@ -45,10 +45,10 @@ export default class TripPointAddPresenter {
   }
 
   _handleFormSubmit(tripPoint) {
-    // if (dayjs(tripPoint.beginDate).diff(dayjs(tripPoint.endDate)) > 0) {
-    //   toast('End date must be after begin date');
-    //   return;
-    // }
+    if (!isOnline()) {
+      toast('You can\'t save trip point while offline');
+      return;
+    }
     this._changeData(
       UserAction.ADD_TRIP_POINT,
       UpdateType.MINOR,
