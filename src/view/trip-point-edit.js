@@ -42,7 +42,7 @@ const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDe
           <label class="event__label  event__type-output" for="event-destination-1">
             ${currentType}
           </label>
-          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination ? he.encode(currentDestination.name) : ''}" list="destination-list-1" ${ isDisabled ? 'disabled' : ''}>
+          <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${currentDestination ? he.encode(currentDestination.name) : ''}" list="destination-list-1" ${ isDisabled ? 'disabled' : ''} required>
           <datalist id="destination-list-1">
             ${getDestinationOptionsMarkup()}
           </datalist>
@@ -50,10 +50,10 @@ const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDe
 
         <div class="event__field-group  event__field-group--time">
           <label class="visually-hidden" for="event-start-time-1">From</label>
-          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${beginDateWithTimeFormatted}" ${ isDisabled ? 'disabled' : ''}>
+          <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${beginDateWithTimeFormatted}" ${ isDisabled ? 'disabled' : ''} required>
           &mdash;
           <label class="visually-hidden" for="event-end-time-1">To</label>
-          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endDateWithTimeFormatted}" ${ isDisabled ? 'disabled' : ''}>
+          <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${endDateWithTimeFormatted}" ${ isDisabled ? 'disabled' : ''} required>
         </div>
 
         <div class="event__field-group  event__field-group--price">
@@ -61,7 +61,7 @@ const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDe
             <span class="visually-hidden">Price</span>
             &euro;
           </label>
-          <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${currentPrice ? currentPrice : ''}" ${ isDisabled ? 'disabled' : ''}>
+          <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${currentPrice ? currentPrice : ''}" ${ isDisabled ? 'disabled' : ''} required>
         </div>
 
         <button class="event__save-btn  btn  btn--blue" type="submit" ${ isDisabled ? 'disabled' : ''}>
