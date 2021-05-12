@@ -17,7 +17,7 @@ import { toast } from './utils/toast.js';
 import Store from './api/store.js';
 import Provider from './api/provider.js';
 
-// объявим константы, которые нужны для создания экземпляра класса Api
+// объявим константы, которые нужны для создания экземпляра класса Api...
 const AUTHORIZATION = 'Basic 0JDRgNC-0LzQsNGC0L3QsNGP0JHQvtC80LbQuNGF0LA2NjY';
 const END_POINT = 'https://14.ecmascript.pages.academy/big-trip';
 
