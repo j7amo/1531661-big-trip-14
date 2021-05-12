@@ -72,7 +72,7 @@ Promise.all([destinations, offers, tripPoints])
     // сделаем как в демо-проекте: не будем отрисовывать контролы пока не получим все данные с сервера
     const siteMenuPresenter = new SiteMenuPresenter(siteMenuContainer, menuModel, sortModel, switchTableStatsTabs);
     siteMenuPresenter.init();
-    const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel);
+    const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, sortModel, tripPointsModel);
     filtersPresenter.init();
     // подписываем обработчик клика по кнопке добавления новой точки маршрута
     tripPointAddButton.addEventListener('click', (evt) => {
