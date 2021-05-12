@@ -1,5 +1,3 @@
-// заведём отдельную модель для фильтров
-// здесь будем хранить, менять значение текущего фильтра и оповещать наблюдателей (какой-нибудь презентер)
 import Observer from '../utils/observer.js';
 import { MenuType } from '../const.js';
 
@@ -9,12 +7,12 @@ export default class MenuModel extends Observer {
     this._activeMenu = MenuType.TABLE;
   }
 
+  getMenu() {
+    return this._activeMenu;
+  }
+
   setMenu(updateType, activeMenu) {
     this._activeMenu = activeMenu;
     this._notify(updateType, activeMenu);
-  }
-
-  getMenu() {
-    return this._activeMenu;
   }
 }

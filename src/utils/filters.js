@@ -1,4 +1,3 @@
-// вынесем функции фильтрации в отдельный утилитарный модуль
 import { FilterType } from '../const.js';
 import dayjs from 'dayjs';
 

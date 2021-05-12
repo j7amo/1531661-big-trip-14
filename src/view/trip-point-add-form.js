@@ -84,12 +84,9 @@ const createTripPointCreationFormTemplate = (tripPoint, getEventTypesPickerMarku
 };
 
 export default class TripPointAddFormView extends AbstractForm {
-  constructor(eventTypeToOffersMap, destinations) {
+  constructor(eventTypeToOffersPairs, destinations) {
     super();
-    // при создании экземпляра вьюхи формы создания точки маршрута будем инициализировать базовое состояние вьюхи,
-    // эти данные в идеале пользователь в процессе заполнения формы задаст и при сабмите мы их добавим в модель
-    // точек маршрута
-    this._eventTypeToOffersMap = eventTypeToOffersMap;
+    this._eventTypeToOffersPairs = eventTypeToOffersPairs;
     this._destinations = destinations;
     this._initialStateData = {
       price: undefined,
@@ -99,7 +96,7 @@ export default class TripPointAddFormView extends AbstractForm {
       id: nanoid(),
       isFavorite: false,
       offers: [],
-      type: Array.from(this._eventTypeToOffersMap.keys())[0],
+      type: Array.from(this._eventTypeToOffersPairs.keys())[0],
     };
     this._stateData = Object.assign({}, this._initialStateData);
 
@@ -121,17 +118,11 @@ export default class TripPointAddFormView extends AbstractForm {
     this._destroyBeginDatePicker = this._destroyBeginDatePicker.bind(this);
     this._destroyEndDatePicker = this._destroyEndDatePicker.bind(this);
 
-    // не забываем, что при создании нового экземпляра вьюхи мы должны "развесить" внутренние обработчики
     this._setInnerHandlers();
   }
 
   getTemplate() {
     return createTripPointCreationFormTemplate(this._stateData, this._getEventTypesPickerMarkup, this._getDestinationOptionsMarkup, this._initAvailableOffersMarkup, this._getDestinationDescriptionMarkup);
-  }
-
-  _handleFormCancel(evt) {
-    evt.preventDefault();
-    this._callback.cancelAdd();
   }
 
   setFormCancelHandler(callback) {
@@ -149,16 +140,19 @@ export default class TripPointAddFormView extends AbstractForm {
   }
 
   restoreHandlers() {
-    // переподписываем внутренние
     this._setInnerHandlers();
-    // переподписываем внешние
     this.setFormSubmitHandler(this._callback.formSubmit);
     this.setFormCancelHandler(this._callback.cancelAdd);
   }
 
+  _handleFormCancel(evt) {
+    evt.preventDefault();
+    this._callback.cancelAdd();
+  }
+
   _initAvailableOffersMarkup() {
     let availableOffersOptionsMarkup = '';
-    const availableOffers = this._eventTypeToOffersMap.get(this._stateData.type).offers;
+    const availableOffers = this._eventTypeToOffersPairs.get(this._stateData.type).offers;
     for (let i = 0; i < availableOffers.length; i++) {
       const randomId = nanoid();
       const offerTemplate = `<div class="event__offer-selector">

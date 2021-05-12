@@ -3,9 +3,6 @@ import { UpdateType } from '../const.js';
 import SiteMenuView from '../view/site-menu.js';
 
 export default class SiteMenuPresenter {
-  // в конструктор традиционно передаём контейнер
-  // а также модель меню (в которой храним текущий выбранный пункт меню) и модель сортировки (чтобы её
-  // сбрасывать в default при смене активного пункта меню)
   constructor(menuContainer, menuModel, sortModel, switchTableStatsTabs) {
     this._menuContainer = menuContainer;
     this._menuModel = menuModel;
@@ -41,9 +38,9 @@ export default class SiteMenuPresenter {
     if (this._menuModel.getMenu() === activeMenu) {
       return;
     }
+
     this._switchTableStatsTabs(activeMenu);
     this._menuModel.setMenu(UpdateType.MAJOR, activeMenu);
-    // по ТЗ сортировка при смене пунктов меню должна сбрасываться
     this._sortModel.setSort(UpdateType.MAJOR, null, true);
   }
 }

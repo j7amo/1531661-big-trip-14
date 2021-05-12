@@ -89,16 +89,11 @@ const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDe
 };
 
 export default class TripPointEditFormView extends AbstractForm {
-  constructor(tripPoint, eventTypeToOffersMap, destinations) {
+  constructor(tripPoint, eventTypeToOffersPairs, destinations) {
     super();
-    // UPDATE: теперь мы не работаем напрямую с данными, а работаем с состоянием вьюхи, поэтому сразу при создании
-    // её экземпляра делаем преобразование данных модели в данные состояния и дальше до завершения действий по изменению
-    // состояния вьюхи работаем только с состоянием до тех пор пока не возникнет ситуация (сабмит формы), когда нужно
-    // обновить пришедшие данные
     this._stateData = AbstractForm.parseTripPointToStateData(tripPoint);
-    this._eventTypeToOffersMap = eventTypeToOffersMap;
+    this._eventTypeToOffersPairs = eventTypeToOffersPairs;
     this._destinations = destinations;
-    // заводим поле под flatpickr (в конструкторе присваиваем ему null, чтобы он обнулялся при повторном рендеринге всей формы)
     this._beginDatePicker = null;
     this._endDatePicker = null;
 
@@ -121,14 +116,28 @@ export default class TripPointEditFormView extends AbstractForm {
     this._destroyEndDatePicker = this._destroyEndDatePicker.bind(this);
     this._handleFormDeleteClick = this._handleFormDeleteClick.bind(this);
 
-    // не забываем, что при создании нового экземпляра вьюхи мы должны "развесить" внутренние обработчики
     this._setInnerHandlers();
   }
 
   getTemplate() {
-    // UPDATE: так как мы начали работать с состоянием вьюхи, то теперь мы должны не просто передавать в метод генерации
-    // разметки исходные данные, но и флаги состояния (для этого у нас появился специальный метод)
     return createTripPointEditTemplate(this._stateData, this._getEventTypesPickerMarkup, this._getDestinationOptionsMarkup, this._initAvailableOffersMarkup, this._getDestinationDescriptionMarkup);
+  }
+
+  setFormDeleteClickHandler(callback) {
+    this._callback.deleteClick = callback;
+    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._handleFormDeleteClick);
+  }
+
+  setEditClickHandler(callback) {
+    this._callback.click = callback;
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._handleEditClick);
+  }
+
+  restoreHandlers() {
+    this._setInnerHandlers();
+    this.setFormSubmitHandler(this._callback.formSubmit);
+    this.setEditClickHandler(this._callback.click);
+    this.setFormDeleteClickHandler(this._callback.deleteClick);
   }
 
   _handleEditClick(evt) {
@@ -141,26 +150,5 @@ export default class TripPointEditFormView extends AbstractForm {
     this._callback.deleteClick(AbstractForm.parseStateDataToTripPoint(this._stateData));
     this._destroyBeginDatePicker();
     this._destroyEndDatePicker();
-  }
-
-
-  setFormDeleteClickHandler(callback) {
-    this._callback.deleteClick = callback;
-    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._handleFormDeleteClick);
-  }
-
-  setEditClickHandler(callback) {
-    this._callback.click = callback;
-    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._handleEditClick);
-  }
-
-  // объявим метод, который будет восстанавливать обработчики (как внешние, так и внутренние) после перерисовки
-  restoreHandlers() {
-    // переподписываем внутренние
-    this._setInnerHandlers();
-    // переподписываем внешние
-    this.setFormSubmitHandler(this._callback.formSubmit);
-    this.setEditClickHandler(this._callback.click);
-    this.setFormDeleteClickHandler(this._callback.deleteClick);
   }
 }

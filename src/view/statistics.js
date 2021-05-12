@@ -1,4 +1,3 @@
-// вьюха статистики
 import AbstractSmartView from './smart-view.js';
 import Chart from 'chart.js';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
@@ -6,23 +5,53 @@ import { getDurationInMinutes, getDurationFormatted } from '../utils/trip-point.
 
 const BASE_HEIGHT = 55;
 
-// получим уникальные ярлыки (подписи, лейблы)
-const getLabels = (tripPoints) => {
-  const uniqueLabelsSet = new Set();
-  // сначала пройдёмся по всем точкам маршрута, "возьмём" у них тип и добавим его в множество, которое позволяет хранить
-  // только уникальные элементы (согласно спецификации)
-  tripPoints.forEach((tripPoint) => uniqueLabelsSet.add(tripPoint.type.toUpperCase()));
-  return Array.from(uniqueLabelsSet.values());
+const ChartType = {
+  HORIZONTAL_BAR: 'horizontalBar',
 };
 
-// получим сумму затрат (в ТЗ речь идёт только о тех цифрах, которые пользователь вводит в поле ввода цены, дополнительные
-// офферы почему-то предлагается не учитывать)
+const ChartBackgroundColor = {
+  WHITE: '#ffffff',
+};
+
+const ChartHoverBackgroundColor = {
+  WHITE: '#ffffff',
+};
+
+const DATA_LABEL_FONT_SIZE = 13;
+const DATASETS_ANCHOR = 'start';
+const DATA_LABEL_COLOR = '#000000';
+const DATA_LABEL_ANCHOR = 'end';
+const DATA_LABEL_ALIGN = 'start';
+
+const ChartTitle = {
+  MONEY: 'MONEY',
+  TYPE: 'TYPE',
+  TIME_SPEND: 'TIME-SPEND',
+};
+
+const CHART_TITLE_FONT_COLOR = '#000000';
+const CHART_TITLE_FONT_SIZE = 23;
+const CHART_TITLE_POSITION = 'left';
+const CHART_SCALES_FONT_COLOR = '#000000';
+const CHART_SCALES_PADDING = 5;
+const CHART_SCALES_FONT_SIZE = 13;
+const CHART_SCALES_BAR_THICKNESS = 44;
+const CHART_SCALES_MIN_BAR_LENGTH = 50;
+const MIN_LABELS_COUNT = 1;
+const AVERAGE_LABELS_COUNT = 5;
+const MIN_LABELS_COUNT_SIZE_MULTIPLIER = 2;
+const AVERAGE_LABELS_COUNT_SIZE_MULTIPLIER = 1.5;
+
+const getLabels = (tripPoints) => {
+  const uniqueLabels = new Set();
+  tripPoints.forEach((tripPoint) => uniqueLabels.add(tripPoint.type.toUpperCase()));
+  return Array.from(uniqueLabels.values());
+};
+
 const countSumByLabels = (tripPoints) => {
-  // получаем уникальные ярлыки (типы)
   const uniqueLabels = getLabels(tripPoints);
-  // сюда будем складывать суммы по типам
-  const sumByLabels = [];
-  // используем вложенный цикл и добавляем полученные суммы в массив сумм
+  const sumsByLabels = [];
+
   uniqueLabels.forEach((label) => {
     let sumByLabel = 0;
     tripPoints.forEach((tripPoint) => {
@@ -30,15 +59,16 @@ const countSumByLabels = (tripPoints) => {
         sumByLabel += tripPoint.price ? Number(tripPoint.price) : 0;
       }
     });
-    sumByLabels.push(sumByLabel);
+    sumsByLabels.push(sumByLabel);
   });
-  return sumByLabels;
+
+  return sumsByLabels;
 };
 
-// посчитаем количество точек маршрута каждого типа
 const countTripPointsByType = (tripPoints) => {
   const uniqueLabels = getLabels(tripPoints);
-  const tripPointsQuantityByLabels = [];
+  const tripPointsQuantitiesByLabels = [];
+
   uniqueLabels.forEach((label) => {
     let tripPointsQuantityByLabel = 0;
     tripPoints.forEach((tripPoint) => {
@@ -46,15 +76,16 @@ const countTripPointsByType = (tripPoints) => {
         tripPointsQuantityByLabel += 1;
       }
     });
-    tripPointsQuantityByLabels.push(tripPointsQuantityByLabel);
+    tripPointsQuantitiesByLabels.push(tripPointsQuantityByLabel);
   });
-  return tripPointsQuantityByLabels;
+
+  return tripPointsQuantitiesByLabels;
 };
 
-// посчитаем общую продолжительность по каждому типу
 const countTimeSpendByType = (tripPoints) => {
   const uniqueLabels = getLabels(tripPoints);
-  const timeSpendByLabels = [];
+  const timesSpendByLabels = [];
+
   uniqueLabels.forEach((label) => {
     let timeSpendByLabel = 0;
     tripPoints.forEach((tripPoint) => {
@@ -62,55 +93,56 @@ const countTimeSpendByType = (tripPoints) => {
         timeSpendByLabel += getDurationInMinutes(tripPoint);
       }
     });
-    timeSpendByLabels.push(timeSpendByLabel);
+    timesSpendByLabels.push(timeSpendByLabel);
   });
-  return timeSpendByLabels;
+
+  return timesSpendByLabels;
 };
 
 const createMoneyChart = (moneyCtx, tripPoints) => {
   return new Chart(moneyCtx, {
     plugins: [ChartDataLabels],
-    type: 'horizontalBar',
+    type: ChartType.HORIZONTAL_BAR,
     data: {
       labels: [...getLabels(tripPoints)],
       datasets: [{
         data: [...countSumByLabels(tripPoints)],
-        backgroundColor: '#ffffff',
-        hoverBackgroundColor: '#ffffff',
-        anchor: 'start',
+        backgroundColor: ChartBackgroundColor.WHITE,
+        hoverBackgroundColor: ChartHoverBackgroundColor.WHITE,
+        anchor: DATASETS_ANCHOR,
       }],
     },
     options: {
       plugins: {
         datalabels: {
           font: {
-            size: 13,
+            size: DATA_LABEL_FONT_SIZE,
           },
-          color: '#000000',
-          anchor: 'end',
-          align: 'start',
+          color: DATA_LABEL_COLOR,
+          anchor: DATA_LABEL_ANCHOR,
+          align: DATA_LABEL_ALIGN,
           formatter: (val) => `€ ${val}`,
         },
       },
       title: {
         display: true,
-        text: 'MONEY',
-        fontColor: '#000000',
-        fontSize: 23,
-        position: 'left',
+        text: ChartTitle.MONEY,
+        fontColor: CHART_TITLE_FONT_COLOR,
+        fontSize: CHART_TITLE_FONT_SIZE,
+        position: CHART_TITLE_POSITION,
       },
       scales: {
         yAxes: [{
           ticks: {
-            fontColor: '#000000',
-            padding: 5,
-            fontSize: 13,
+            fontColor: CHART_SCALES_FONT_COLOR,
+            padding: CHART_SCALES_PADDING,
+            fontSize: CHART_SCALES_FONT_SIZE,
           },
           gridLines: {
             display: false,
             drawBorder: false,
           },
-          barThickness: 44,
+          barThickness: CHART_SCALES_BAR_THICKNESS,
         }],
         xAxes: [{
           ticks: {
@@ -121,7 +153,7 @@ const createMoneyChart = (moneyCtx, tripPoints) => {
             display: false,
             drawBorder: false,
           },
-          minBarLength: 50,
+          minBarLength: CHART_SCALES_MIN_BAR_LENGTH,
         }],
       },
       legend: {
@@ -137,47 +169,47 @@ const createMoneyChart = (moneyCtx, tripPoints) => {
 const createTypeChart = (typeCtx, tripPoints) => {
   return new Chart(typeCtx, {
     plugins: [ChartDataLabels],
-    type: 'horizontalBar',
+    type: ChartType.HORIZONTAL_BAR,
     data: {
       labels: [...getLabels(tripPoints)],
       datasets: [{
         data: [...countTripPointsByType(tripPoints)],
-        backgroundColor: '#ffffff',
-        hoverBackgroundColor: '#ffffff',
-        anchor: 'start',
+        backgroundColor: ChartBackgroundColor.WHITE,
+        hoverBackgroundColor: ChartHoverBackgroundColor.WHITE,
+        anchor: DATASETS_ANCHOR,
       }],
     },
     options: {
       plugins: {
         datalabels: {
           font: {
-            size: 13,
+            size: DATA_LABEL_FONT_SIZE,
           },
-          color: '#000000',
-          anchor: 'end',
-          align: 'start',
+          color: DATA_LABEL_COLOR,
+          anchor: DATA_LABEL_ANCHOR,
+          align: DATA_LABEL_ALIGN,
           formatter: (val) => `${val}x`,
         },
       },
       title: {
         display: true,
-        text: 'TYPE',
-        fontColor: '#000000',
-        fontSize: 23,
-        position: 'left',
+        text: ChartTitle.TYPE,
+        fontColor: CHART_TITLE_FONT_COLOR,
+        fontSize: CHART_TITLE_FONT_SIZE,
+        position: CHART_TITLE_POSITION,
       },
       scales: {
         yAxes: [{
           ticks: {
-            fontColor: '#000000',
-            padding: 5,
-            fontSize: 13,
+            fontColor: CHART_SCALES_FONT_COLOR,
+            padding: CHART_SCALES_PADDING,
+            fontSize: CHART_SCALES_FONT_SIZE,
           },
           gridLines: {
             display: false,
             drawBorder: false,
           },
-          barThickness: 44,
+          barThickness: CHART_SCALES_BAR_THICKNESS,
         }],
         xAxes: [{
           ticks: {
@@ -188,7 +220,7 @@ const createTypeChart = (typeCtx, tripPoints) => {
             display: false,
             drawBorder: false,
           },
-          minBarLength: 50,
+          minBarLength: CHART_SCALES_MIN_BAR_LENGTH,
         }],
       },
       legend: {
@@ -200,50 +232,51 @@ const createTypeChart = (typeCtx, tripPoints) => {
     },
   });
 };
+
 const createTimeChart = (timeCtx, tripPoints) => {
   return new Chart(timeCtx, {
     plugins: [ChartDataLabels],
-    type: 'horizontalBar',
+    type: ChartType.HORIZONTAL_BAR,
     data: {
       labels: [...getLabels(tripPoints)],
       datasets: [{
         data: [...countTimeSpendByType(tripPoints)],
-        backgroundColor: '#ffffff',
-        hoverBackgroundColor: '#ffffff',
-        anchor: 'start',
+        backgroundColor: ChartBackgroundColor.WHITE,
+        hoverBackgroundColor: ChartHoverBackgroundColor.WHITE,
+        anchor: DATASETS_ANCHOR,
       }],
     },
     options: {
       plugins: {
         datalabels: {
           font: {
-            size: 13,
+            size: DATA_LABEL_FONT_SIZE,
           },
-          color: '#000000',
-          anchor: 'end',
-          align: 'start',
+          color: DATA_LABEL_COLOR,
+          anchor: DATA_LABEL_ANCHOR,
+          align: DATA_LABEL_ALIGN,
           formatter: (val) => `${getDurationFormatted(val)}`,
         },
       },
       title: {
         display: true,
-        text: 'TIME-SPEND',
-        fontColor: '#000000',
-        fontSize: 23,
-        position: 'left',
+        text: ChartTitle.TIME_SPEND,
+        fontColor: CHART_TITLE_FONT_COLOR,
+        fontSize: CHART_TITLE_FONT_SIZE,
+        position: CHART_TITLE_POSITION,
       },
       scales: {
         yAxes: [{
           ticks: {
-            fontColor: '#000000',
-            padding: 5,
-            fontSize: 13,
+            fontColor: CHART_SCALES_FONT_COLOR,
+            padding: CHART_SCALES_PADDING,
+            fontSize: CHART_SCALES_FONT_SIZE,
           },
           gridLines: {
             display: false,
             drawBorder: false,
           },
-          barThickness: 44,
+          barThickness: CHART_SCALES_BAR_THICKNESS,
         }],
         xAxes: [{
           ticks: {
@@ -254,7 +287,7 @@ const createTimeChart = (timeCtx, tripPoints) => {
             display: false,
             drawBorder: false,
           },
-          minBarLength: 50,
+          minBarLength: CHART_SCALES_MIN_BAR_LENGTH,
         }],
       },
       legend: {
@@ -270,11 +303,11 @@ const createTimeChart = (timeCtx, tripPoints) => {
 const createStatisticsTemplate = (tripPoints) => {
   const labelCount = getLabels(tripPoints).length;
   let height;
-  if (labelCount <= 1) {
-    height = 2 * BASE_HEIGHT * labelCount;
-  } else if (labelCount > 1 && labelCount <= 5) {
-    height = 1.5 * BASE_HEIGHT * labelCount;
-  } else if (labelCount > 5) {
+  if (labelCount <= MIN_LABELS_COUNT) {
+    height = MIN_LABELS_COUNT_SIZE_MULTIPLIER * BASE_HEIGHT * labelCount;
+  } else if (labelCount > MIN_LABELS_COUNT && labelCount <= AVERAGE_LABELS_COUNT) {
+    height = AVERAGE_LABELS_COUNT_SIZE_MULTIPLIER * BASE_HEIGHT * labelCount;
+  } else {
     height = BASE_HEIGHT * labelCount;
   }
 
@@ -302,6 +335,7 @@ export default class StatisticsView extends AbstractSmartView {
     this._moneyChart = null;
     this._typeChart = null;
     this._timeChart = null;
+
     this._setCharts();
   }
 
@@ -316,12 +350,12 @@ export default class StatisticsView extends AbstractSmartView {
       this._timeChart = null;
     }
 
-    const moneyCtx = this.getElement().querySelector('.statistics__chart--money');
-    const typeCtx = this.getElement().querySelector('.statistics__chart--transport');
-    const timeCtx = this.getElement().querySelector('.statistics__chart--time');
+    const moneyCtxElement = this.getElement().querySelector('.statistics__chart--money');
+    const typeCtxElement = this.getElement().querySelector('.statistics__chart--transport');
+    const timeCtxElement = this.getElement().querySelector('.statistics__chart--time');
 
-    this._moneyChart = createMoneyChart(moneyCtx, this._tripPoints);
-    this._typeChart = createTypeChart(typeCtx, this._tripPoints);
-    this._timeChart = createTimeChart(timeCtx, this._tripPoints);
+    this._moneyChart = createMoneyChart(moneyCtxElement, this._tripPoints);
+    this._typeChart = createTypeChart(typeCtxElement, this._tripPoints);
+    this._timeChart = createTimeChart(timeCtxElement, this._tripPoints);
   }
 }
