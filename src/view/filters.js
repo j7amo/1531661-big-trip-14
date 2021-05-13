@@ -33,7 +33,7 @@ export default class FiltersView extends AbstractView {
     this._activeFilter = activeFilter;
     this._tripPoints = tripPoints;
 
-    this._handleActiveFilterChange = this._handleActiveFilterChange.bind(this);
+    this._activeFilterChangeHandler = this._activeFilterChangeHandler.bind(this);
   }
 
   getTemplate() {
@@ -42,10 +42,10 @@ export default class FiltersView extends AbstractView {
 
   setActiveFilterChangeHandler(callback) {
     this._callback.activeFilterChange =  callback;
-    this.getElement().addEventListener('change', this._handleActiveFilterChange);
+    this.getElement().addEventListener('change', this._activeFilterChangeHandler);
   }
 
-  _handleActiveFilterChange(evt) {
+  _activeFilterChangeHandler(evt) {
     evt.preventDefault();
     this._callback.activeFilterChange(evt.target.value);
   }

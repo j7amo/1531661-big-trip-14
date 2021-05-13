@@ -13,7 +13,7 @@ export default class SiteMenuView extends AbstractView {
     super();
     this._activeMenu = activeMenu;
 
-    this._handleMenuClick = this._handleMenuClick.bind(this);
+    this._menuClickHandler = this._menuClickHandler.bind(this);
   }
 
   getTemplate() {
@@ -22,10 +22,10 @@ export default class SiteMenuView extends AbstractView {
 
   setMenuClickHandler(callback) {
     this._callback.menuClick = callback;
-    this.getElement().querySelectorAll('.trip-tabs__btn').forEach((child) => child.addEventListener('click', this._handleMenuClick));
+    this.getElement().querySelectorAll('.trip-tabs__btn').forEach((child) => child.addEventListener('click', this._menuClickHandler));
   }
 
-  _handleMenuClick(evt) {
+  _menuClickHandler(evt) {
     evt.preventDefault();
     this._callback.menuClick(evt.target.dataset.menuType);
   }

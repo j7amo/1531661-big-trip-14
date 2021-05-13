@@ -99,14 +99,36 @@ const countTimeSpendByType = (tripPoints) => {
   return timesSpendByLabels;
 };
 
+const sortChartData = (tripPoints, countingCallback) => {
+  const labels = [...getLabels(tripPoints)];
+  const sumsByLabels = [...countingCallback(tripPoints)];
+  const labelsWithSums = new Map();
+
+  for (let i = 0; i <labels.length; i++) {
+    labelsWithSums.set(labels[i], sumsByLabels[i]);
+  }
+
+  const sortedLabelsWithSums = Array.from(labelsWithSums.entries()).sort(([,sumA],[,sumB]) => sumB - sumA);
+
+  for (let i = 0; i <sortedLabelsWithSums.length; i++) {
+    labels[i] = sortedLabelsWithSums[i][0];
+    sumsByLabels[i] = sortedLabelsWithSums[i][1];
+  }
+
+  return {
+    labels,
+    sumsByLabels,
+  };
+};
+
 const createMoneyChart = (moneyCtx, tripPoints) => {
   return new Chart(moneyCtx, {
     plugins: [ChartDataLabels],
     type: ChartType.HORIZONTAL_BAR,
     data: {
-      labels: [...getLabels(tripPoints)],
+      labels: sortChartData(tripPoints, countSumByLabels).labels,
       datasets: [{
-        data: [...countSumByLabels(tripPoints)],
+        data: sortChartData(tripPoints, countSumByLabels).sumsByLabels,
         backgroundColor: ChartBackgroundColor.WHITE,
         hoverBackgroundColor: ChartHoverBackgroundColor.WHITE,
         anchor: DATASETS_ANCHOR,
@@ -171,9 +193,9 @@ const createTypeChart = (typeCtx, tripPoints) => {
     plugins: [ChartDataLabels],
     type: ChartType.HORIZONTAL_BAR,
     data: {
-      labels: [...getLabels(tripPoints)],
+      labels: sortChartData(tripPoints, countTripPointsByType).labels,
       datasets: [{
-        data: [...countTripPointsByType(tripPoints)],
+        data: sortChartData(tripPoints, countTripPointsByType).sumsByLabels,
         backgroundColor: ChartBackgroundColor.WHITE,
         hoverBackgroundColor: ChartHoverBackgroundColor.WHITE,
         anchor: DATASETS_ANCHOR,
@@ -238,9 +260,9 @@ const createTimeChart = (timeCtx, tripPoints) => {
     plugins: [ChartDataLabels],
     type: ChartType.HORIZONTAL_BAR,
     data: {
-      labels: [...getLabels(tripPoints)],
+      labels: sortChartData(tripPoints, countTimeSpendByType).labels,
       datasets: [{
-        data: [...countTimeSpendByType(tripPoints)],
+        data: sortChartData(tripPoints, countTimeSpendByType).sumsByLabels,
         backgroundColor: ChartBackgroundColor.WHITE,
         hoverBackgroundColor: ChartHoverBackgroundColor.WHITE,
         anchor: DATASETS_ANCHOR,

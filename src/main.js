@@ -17,7 +17,7 @@ import { toast } from './utils/toast.js';
 import Storage from './api/Storage.js';
 import Provider from './api/provider.js';
 
-const AUTHORIZATION = 'Basic 0JDRgNC-0LzQsNGC0L3QsNGP0JHQvtC80LbQuNGF0LA2NjY';
+const AUTHORIZATION = 'Basic 0LPQvdC-0LnQvdGL0Lkg0LHQvtC80LY';
 const END_POINT = 'https://14.ecmascript.pages.academy/big-trip';
 
 const StoragePrefix = {

@@ -14,7 +14,7 @@ export default class AbstractForm extends AbstractSmartView {
 
   setFormSubmitHandler(callback) {
     this._callback.formSubmit = callback;
-    this.getElement().querySelector('.event--edit').addEventListener('submit', this._handleFormSubmit);
+    this.getElement().querySelector('.event--edit').addEventListener('submit', this._formSubmitHandler);
   }
 
 
@@ -69,16 +69,16 @@ export default class AbstractForm extends AbstractSmartView {
     }, true);
   }
 
-  _handleBeginDateClick(evt) {
+  _beginDateClickHandler(evt) {
     evt.preventDefault();
-    evt.target.removeEventListener('click', this._handleBeginDateClick);
+    evt.target.removeEventListener('click', this._beginDateClickHandler);
     this._initDatePicker(DateType.BEGIN_DATE, evt.target, this._stateData.beginDate, this._handleBeginDateChange);
     this._beginDatePicker.open();
   }
 
-  _handleEndDateClick(evt) {
+  _endDateClickHandler(evt) {
     evt.preventDefault();
-    evt.target.removeEventListener('click', this._handleEndDateClick);
+    evt.target.removeEventListener('click', this._endDateClickHandler);
     this._initDatePicker(DateType.END_DATE, evt.target, this._stateData.endDate, this._handleEndDateChange);
     this._endDatePicker.open();
   }
@@ -97,7 +97,7 @@ export default class AbstractForm extends AbstractSmartView {
     }
   }
 
-  _handleFormSubmit(evt) {
+  _formSubmitHandler(evt) {
     evt.preventDefault();
     if (dayjs(this._stateData.beginDate).diff(dayjs(this._stateData.endDate)) > 0) {
       toast('End date must be after begin date');
@@ -109,14 +109,14 @@ export default class AbstractForm extends AbstractSmartView {
     this._destroyEndDatePicker();
   }
 
-  _handlePriceInput(evt) {
+  _priceInputHandler(evt) {
     evt.preventDefault();
     this.updateState({
       price: evt.target.value,
     }, true);
   }
 
-  _handleEventTypeChange(evt) {
+  _eventTypeChangeHandler(evt) {
     evt.preventDefault();
     const update = {
       offers: [],
@@ -125,7 +125,7 @@ export default class AbstractForm extends AbstractSmartView {
     this.updateState(update, false);
   }
 
-  _handleEventOffersToggle(evt) {
+  _eventOffersToggleHandler(evt) {
     evt.preventDefault();
     const offerCheckbox = evt.target;
     const container = offerCheckbox.parentElement;
@@ -153,7 +153,7 @@ export default class AbstractForm extends AbstractSmartView {
     }
   }
 
-  _handleDestinationChange(evt) {
+  _destinationChangeHandler(evt) {
     evt.preventDefault();
     this.updateState({
       destination: this._destinations.get(evt.target.value),
@@ -161,13 +161,13 @@ export default class AbstractForm extends AbstractSmartView {
   }
 
   _setInnerHandlers() {
-    this.getElement().querySelector('.event__input--price').addEventListener('change', this._handlePriceInput);
-    this.getElement().querySelector('.event__type-group').addEventListener('change', this._handleEventTypeChange);
-    this.getElement().querySelector('.event__field-group--destination').addEventListener('change', this._handleDestinationChange);
+    this.getElement().querySelector('.event__input--price').addEventListener('change', this._priceInputHandler);
+    this.getElement().querySelector('.event__type-group').addEventListener('change', this._eventTypeChangeHandler);
+    this.getElement().querySelector('.event__field-group--destination').addEventListener('change', this._destinationChangeHandler);
     const availableOffers = this.getElement().querySelectorAll('.event__offer-checkbox');
-    availableOffers.forEach((offer) => offer.addEventListener('change', this._handleEventOffersToggle));
-    this.getElement().querySelector('input[id = "event-start-time-1"]').addEventListener('click', this._handleBeginDateClick);
-    this.getElement().querySelector('input[id = "event-end-time-1"]').addEventListener('click', this._handleEndDateClick);
+    availableOffers.forEach((offer) => offer.addEventListener('change', this._eventOffersToggleHandler));
+    this.getElement().querySelector('input[id = "event-start-time-1"]').addEventListener('click', this._beginDateClickHandler);
+    this.getElement().querySelector('input[id = "event-end-time-1"]').addEventListener('click', this._endDateClickHandler);
   }
 
   _getEventTypesPickerMarkup() {
@@ -224,7 +224,16 @@ export default class AbstractForm extends AbstractSmartView {
       availableOffersOptionsMarkup += offerTemplate;
     }
 
-    return availableOffersOptionsMarkup;
+    if (availableOffersOptionsMarkup.length === 0) {
+      return '';
+    }
+
+    return `<section class="event__section  event__section--offers">
+      <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+      <div class="event__available-offers">
+        ${availableOffersOptionsMarkup}
+      </div>
+    </section>`;
   }
 
   _getDestinationDescriptionMarkup(destinationName) {
@@ -234,6 +243,10 @@ export default class AbstractForm extends AbstractSmartView {
       const src = newDestination.pictures[i].src;
       const alt = newDestination.pictures[i].description;
       eventPhotosMarkup += `<img class="event__photo" src="${src}" alt="${alt}">`;
+    }
+
+    if (eventPhotosMarkup.length === 0) {
+      return '';
     }
 
     return `<section class="event__section  event__section--destination">

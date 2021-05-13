@@ -100,21 +100,21 @@ export default class TripPointAddFormView extends AbstractForm {
     };
     this._stateData = Object.assign({}, this._initialStateData);
 
-    this._handleFormCancel = this._handleFormCancel.bind(this);
-    this._handleFormSubmit = this._handleFormSubmit.bind(this);
+    this._formCancelHandler = this._formCancelHandler.bind(this);
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
     this._getEventTypesPickerMarkup = this._getEventTypesPickerMarkup.bind(this);
     this._getDestinationOptionsMarkup = this._getDestinationOptionsMarkup.bind(this);
     this._getDestinationDescriptionMarkup = this._getDestinationDescriptionMarkup.bind(this);
     this._initAvailableOffersMarkup = this._initAvailableOffersMarkup.bind(this);
-    this._handlePriceInput = this._handlePriceInput.bind(this);
+    this._priceInputHandler = this._priceInputHandler.bind(this);
     this._handleBeginDateChange = this._handleBeginDateChange.bind(this);
     this._handleEndDateChange = this._handleEndDateChange.bind(this);
-    this._handleEventTypeChange = this._handleEventTypeChange.bind(this);
-    this._handleEventOffersToggle = this._handleEventOffersToggle.bind(this);
-    this._handleDestinationChange = this._handleDestinationChange.bind(this);
+    this._eventTypeChangeHandler = this._eventTypeChangeHandler.bind(this);
+    this._eventOffersToggleHandler = this._eventOffersToggleHandler.bind(this);
+    this._destinationChangeHandler = this._destinationChangeHandler.bind(this);
     this._initDatePicker = this._initDatePicker.bind(this);
-    this._handleBeginDateClick = this._handleBeginDateClick.bind(this);
-    this._handleEndDateClick = this._handleEndDateClick.bind(this);
+    this._beginDateClickHandler = this._beginDateClickHandler.bind(this);
+    this._endDateClickHandler = this._endDateClickHandler.bind(this);
     this._destroyBeginDatePicker = this._destroyBeginDatePicker.bind(this);
     this._destroyEndDatePicker = this._destroyEndDatePicker.bind(this);
 
@@ -127,7 +127,7 @@ export default class TripPointAddFormView extends AbstractForm {
 
   setFormCancelHandler(callback) {
     this._callback.cancelAdd = callback;
-    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._handleFormCancel);
+    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._formCancelHandler);
   }
 
   reset() {
@@ -145,7 +145,7 @@ export default class TripPointAddFormView extends AbstractForm {
     this.setFormCancelHandler(this._callback.cancelAdd);
   }
 
-  _handleFormCancel(evt) {
+  _formCancelHandler(evt) {
     evt.preventDefault();
     this._callback.cancelAdd();
   }

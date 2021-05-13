@@ -16,7 +16,7 @@ export default class TripPointAddPresenter {
 
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
     this._handleFormCancelClick = this._handleFormCancelClick.bind(this);
-    this._handleEscKeyDown = this._handleEscKeyDown.bind(this);
+    this._escKeyDownHandler = this._escKeyDownHandler.bind(this);
   }
 
   init() {
@@ -24,13 +24,13 @@ export default class TripPointAddPresenter {
     this._tripPointAddComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointAddComponent.setFormCancelHandler(this._handleFormCancelClick);
     render(this._tripPointsListContainer, this._tripPointAddComponent, RenderPosition.AFTERBEGIN);
-    document.addEventListener('keydown', this._handleEscKeyDown);
+    document.addEventListener('keydown', this._escKeyDownHandler);
   }
 
   destroy() {
     remove(this._tripPointAddComponent);
     this._tripPointAddComponent = null;
-    document.removeEventListener('keydown', this._handleEscKeyDown);
+    document.removeEventListener('keydown', this._escKeyDownHandler);
   }
 
   setSaving() {
@@ -52,7 +52,7 @@ export default class TripPointAddPresenter {
     this._tripPointAddComponent.shake(resetFormState);
   }
 
-  _handleEscKeyDown(evt) {
+  _escKeyDownHandler(evt) {
     if (evt.key === 'Esc' || evt.key === 'Escape') {
       evt.preventDefault();
       this.destroy();
@@ -66,10 +66,10 @@ export default class TripPointAddPresenter {
   }
 
   _handleFormSubmit(tripPoint) {
-    if (!isOnline()) {
-      toast('You can\'t save trip point while offline');
-      return;
-    }
+    // if (!isOnline()) {
+    //   toast('You can\'t save trip point while offline');
+    //   return;
+    // }
 
     this._changeData(
       UserAction.ADD_TRIP_POINT,

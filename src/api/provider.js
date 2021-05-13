@@ -2,6 +2,7 @@ import TripPointsModel from '../model/trip-points.js';
 import { isOnline } from '../utils/common.js';
 import OffersModel from '../model/offers.js';
 import DestinationsModel from '../model/destinations.js';
+import { toast } from '../utils/toast.js';
 
 const getSyncedTripPoints = (items) => {
   return items
@@ -80,9 +81,9 @@ export default class Provider {
         });
     }
 
-    this._tripPointsStorage.setItem(tripPoint.id, TripPointsModel.adaptToServer(Object.assign({}, tripPoint)));
+    //this._tripPointsStorage.setItem(tripPoint.id, TripPointsModel.adaptToServer(Object.assign({}, tripPoint)));
 
-    return Promise.resolve(tripPoint);
+    return Promise.reject(toast('You can\'t update trip point while offline'));
   }
 
   addTripPoint(tripPoint) {
@@ -94,7 +95,7 @@ export default class Provider {
         });
     }
 
-    return Promise.reject(new Error('Failed to add trip point'));
+    return Promise.reject(toast('You can\'t add trip point while offline'));
   }
 
   deleteTripPoint(tripPoint) {
@@ -103,7 +104,7 @@ export default class Provider {
         .then(() => this._tripPointsStorage.removeItem(tripPoint.id));
     }
 
-    return Promise.reject(new Error('Failed to delete trip point'));
+    return Promise.reject(toast('You can\'t delete trip point while offline'));
   }
 
   sync() {

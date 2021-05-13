@@ -75,13 +75,7 @@ const createTripPointEditTemplate = (tripPoint, getEventTypesPickerMarkup, getDe
         </button>
       </header>
       <section class="event__details">
-        <section class="event__section  event__section--offers">
-          <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-
-          <div class="event__available-offers">
-            ${initAvailableOffersMarkup(isDisabled)}
-          </div>
-        </section>
+        ${initAvailableOffersMarkup(isDisabled)}
         ${currentDestination ? getDestinationDescriptionMarkup(currentDestination.name) : ''}
       </section>
     </form>
@@ -97,24 +91,24 @@ export default class TripPointEditFormView extends AbstractForm {
     this._beginDatePicker = null;
     this._endDatePicker = null;
 
-    this._handleFormSubmit = this._handleFormSubmit.bind(this);
-    this._handleEditClick = this._handleEditClick.bind(this);
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
+    this._editClickHandler = this._editClickHandler.bind(this);
     this._getEventTypesPickerMarkup = this._getEventTypesPickerMarkup.bind(this);
     this._getDestinationOptionsMarkup = this._getDestinationOptionsMarkup.bind(this);
     this._getDestinationDescriptionMarkup = this._getDestinationDescriptionMarkup.bind(this);
     this._initAvailableOffersMarkup = this._initAvailableOffersMarkup.bind(this);
-    this._handlePriceInput = this._handlePriceInput.bind(this);
+    this._priceInputHandler = this._priceInputHandler.bind(this);
     this._handleBeginDateChange = this._handleBeginDateChange.bind(this);
     this._handleEndDateChange = this._handleEndDateChange.bind(this);
-    this._handleEventTypeChange = this._handleEventTypeChange.bind(this);
-    this._handleEventOffersToggle = this._handleEventOffersToggle.bind(this);
-    this._handleDestinationChange = this._handleDestinationChange.bind(this);
+    this._eventTypeChangeHandler = this._eventTypeChangeHandler.bind(this);
+    this._eventOffersToggleHandler = this._eventOffersToggleHandler.bind(this);
+    this._destinationChangeHandler = this._destinationChangeHandler.bind(this);
     this._initDatePicker = this._initDatePicker.bind(this);
-    this._handleBeginDateClick = this._handleBeginDateClick.bind(this);
-    this._handleEndDateClick = this._handleEndDateClick.bind(this);
+    this._beginDateClickHandler = this._beginDateClickHandler.bind(this);
+    this._endDateClickHandler = this._endDateClickHandler.bind(this);
     this._destroyBeginDatePicker = this._destroyBeginDatePicker.bind(this);
     this._destroyEndDatePicker = this._destroyEndDatePicker.bind(this);
-    this._handleFormDeleteClick = this._handleFormDeleteClick.bind(this);
+    this._formDeleteClickHandler = this._formDeleteClickHandler.bind(this);
 
     this._setInnerHandlers();
   }
@@ -125,12 +119,12 @@ export default class TripPointEditFormView extends AbstractForm {
 
   setFormDeleteClickHandler(callback) {
     this._callback.deleteClick = callback;
-    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._handleFormDeleteClick);
+    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._formDeleteClickHandler);
   }
 
   setEditClickHandler(callback) {
     this._callback.click = callback;
-    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._handleEditClick);
+    this.getElement().querySelector('.event__rollup-btn').addEventListener('click', this._editClickHandler);
   }
 
   restoreHandlers() {
@@ -140,12 +134,12 @@ export default class TripPointEditFormView extends AbstractForm {
     this.setFormDeleteClickHandler(this._callback.deleteClick);
   }
 
-  _handleEditClick(evt) {
+  _editClickHandler(evt) {
     evt.preventDefault();
     this._callback.click();
   }
 
-  _handleFormDeleteClick(evt) {
+  _formDeleteClickHandler(evt) {
     evt.preventDefault();
     this._callback.deleteClick(AbstractForm.parseStateDataToTripPoint(this._stateData));
     this._destroyBeginDatePicker();

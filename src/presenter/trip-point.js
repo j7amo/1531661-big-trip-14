@@ -30,7 +30,7 @@ export default class TripPointPresenter {
     this._handleFormEditClick = this._handleFormEditClick.bind(this);
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
     this._handleFormDeleteClick = this._handleFormDeleteClick.bind(this);
-    this._handleEscKeyDown = this._handleEscKeyDown.bind(this);
+    this._escKeyDownHandler = this._escKeyDownHandler.bind(this);
   }
 
   init(tripPoint, eventTypeToOffersPairs, destinations) {
@@ -107,14 +107,14 @@ export default class TripPointPresenter {
 
   _switchFromCardToForm() {
     replace(this._tripPointEditFormComponent, this._tripPointCardComponent);
-    document.addEventListener('keydown', this._handleEscKeyDown);
+    document.addEventListener('keydown', this._escKeyDownHandler);
     this._changeMode();
     this._mode = Mode.EDITING;
   }
 
   _switchFromFormToCard() {
     replace(this._tripPointCardComponent, this._tripPointEditFormComponent);
-    document.removeEventListener('keydown', this._handleEscKeyDown);
+    document.removeEventListener('keydown', this._escKeyDownHandler);
     this._mode = Mode.DEFAULT;
   }
 
@@ -132,7 +132,7 @@ export default class TripPointPresenter {
     );
   }
 
-  _handleEscKeyDown(evt) {
+  _escKeyDownHandler(evt) {
     if (evt.key === 'Esc' || evt.key === 'Escape') {
       evt.preventDefault();
       this._tripPointEditFormComponent.reset(this._tripPoint);
@@ -155,10 +155,10 @@ export default class TripPointPresenter {
   }
 
   _handleFormSubmit(tripPoint) {
-    if (!isOnline()) {
-      toast('You can\'t save trip point while offline');
-      return;
-    }
+    // if (!isOnline()) {
+    //   toast('You can\'t save trip point while offline');
+    //   return;
+    // }
 
     this._changeData(
       UserAction.UPDATE_TRIP_POINT,
@@ -168,10 +168,10 @@ export default class TripPointPresenter {
   }
 
   _handleFormDeleteClick(tripPoint) {
-    if (!isOnline()) {
-      toast('You can\'t delete trip point while offline');
-      return;
-    }
+    // if (!isOnline()) {
+    //   toast('You can\'t delete trip point while offline');
+    //   return;
+    // }
 
     this._changeData(
       UserAction.DELETE_TRIP_POINT,
