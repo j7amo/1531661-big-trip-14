@@ -155,11 +155,6 @@ export default class TripPointPresenter {
   }
 
   _handleFormSubmit(tripPoint) {
-    // if (!isOnline()) {
-    //   toast('You can\'t save trip point while offline');
-    //   return;
-    // }
-
     this._changeData(
       UserAction.UPDATE_TRIP_POINT,
       UpdateType.MINOR,
@@ -168,11 +163,6 @@ export default class TripPointPresenter {
   }
 
   _handleFormDeleteClick(tripPoint) {
-    // if (!isOnline()) {
-    //   toast('You can\'t delete trip point while offline');
-    //   return;
-    // }
-
     this._changeData(
       UserAction.DELETE_TRIP_POINT,
       UpdateType.MINOR,

@@ -81,8 +81,6 @@ export default class Provider {
         });
     }
 
-    //this._tripPointsStorage.setItem(tripPoint.id, TripPointsModel.adaptToServer(Object.assign({}, tripPoint)));
-
     return Promise.reject(toast('You can\'t update trip point while offline'));
   }
 

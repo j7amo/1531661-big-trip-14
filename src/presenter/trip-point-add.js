@@ -1,8 +1,6 @@
 import TripPointAddFormView from '../view/trip-point-add-form.js';
 import {remove, render, RenderPosition} from '../utils/render.js';
 import {UpdateType, UserAction} from '../const.js';
-import {toast} from '../utils/toast';
-import {isOnline} from '../utils/common';
 
 const newTripPointButtonElement = document.querySelector('.trip-main__event-add-btn');
 
@@ -66,11 +64,6 @@ export default class TripPointAddPresenter {
   }
 
   _handleFormSubmit(tripPoint) {
-    // if (!isOnline()) {
-    //   toast('You can\'t save trip point while offline');
-    //   return;
-    // }
-
     this._changeData(
       UserAction.ADD_TRIP_POINT,
       UpdateType.MINOR,
