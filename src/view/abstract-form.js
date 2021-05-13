@@ -4,6 +4,7 @@ import flatpickr from 'flatpickr';
 import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 import dayjs from 'dayjs';
 import {toast} from '../utils/toast.js';
+import { isOnline } from '../utils/common.js';
 
 const DateType = {
   BEGIN_DATE: 'BEGIN_DATE',
@@ -237,6 +238,10 @@ export default class AbstractForm extends AbstractSmartView {
   }
 
   _getDestinationDescriptionMarkup(destinationName) {
+    if (!isOnline()){
+      return '';
+    }
+
     const newDestination = this._destinations.get(destinationName);
     let eventPhotosMarkup = '';
     for (let i = 0; i < newDestination.pictures.length; i++) {
