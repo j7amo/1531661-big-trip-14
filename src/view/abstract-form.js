@@ -51,7 +51,7 @@ export default class AbstractForm extends AbstractSmartView {
         mode: 'single',
         enableTime: true,
         dateFormat: 'd/m/y H:i',
-        time_24hr: true,
+        'time_24hr': true,
         defaultDate: defaultDate,
         onChange: onChangeCallback,
       },
