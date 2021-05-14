@@ -64,14 +64,6 @@ const tripPoints = apiWithProvider.getTripPoints();
 Promise.all([destinations, offers, tripPoints])
   .then((results) => {
     destinationsModel.setDestinations(results[ModelIndex.DESTINATIONS]);
-    // const destinationsPicturesUrls = [];
-    // const destinations = Array.from(destinationsModel.getDestinations().values());
-    // for (let i = 0; i < destinations.length; i++) {
-    //   for (let k = 0; k < destinations[i].pictures.length; k++) {
-    //     destinationsPicturesUrls.push(destinations[i].pictures[k].src);
-    //   }
-    // }
-    // caches.open(CACHE_NAME).then((cache) => cache.addAll(destinationsPicturesUrls));
     offersModel.setOffers(results[ModelIndex.OFFERS]);
     const sortedTripPoints = results[ModelIndex.TRIP_POINTS]
       .sort((firstTripPoint, secondTripPoint) => dayjs(firstTripPoint.beginDate).diff(dayjs(secondTripPoint.beginDate)));

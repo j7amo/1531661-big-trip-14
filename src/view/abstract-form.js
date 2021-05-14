@@ -238,20 +238,15 @@ export default class AbstractForm extends AbstractSmartView {
   }
 
   _getDestinationDescriptionMarkup(destinationName) {
-    if (!isOnline()){
-      return '';
-    }
-
     const newDestination = this._destinations.get(destinationName);
     let eventPhotosMarkup = '';
-    for (let i = 0; i < newDestination.pictures.length; i++) {
-      const src = newDestination.pictures[i].src;
-      const alt = newDestination.pictures[i].description;
-      eventPhotosMarkup += `<img class="event__photo" src="${src}" alt="${alt}">`;
-    }
 
-    if (eventPhotosMarkup.length === 0) {
-      return '';
+    if (isOnline()){
+      for (let i = 0; i < newDestination.pictures.length; i++) {
+        const src = newDestination.pictures[i].src;
+        const alt = newDestination.pictures[i].description;
+        eventPhotosMarkup += `<img class="event__photo" src="${src}" alt="${alt}">`;
+      }
     }
 
     return `<section class="event__section  event__section--destination">
