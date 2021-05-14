@@ -1,5 +1,9 @@
 import dayjs from 'dayjs';
 
+const MINUTES_IN_DAY = 1440;
+const MINUTES_IN_HOUR = 60;
+const MAX_NUMBER_WITH_LEADING_ZERO = 9;
+
 const getDurationInMinutes = (tripPoint) => {
   const { beginDate, endDate } = tripPoint;
 
@@ -7,9 +11,6 @@ const getDurationInMinutes = (tripPoint) => {
 };
 
 const getDurationFormatted = (durationInMinutes) => {
-  const MINUTES_IN_DAY = 1440;
-  const MINUTES_IN_HOUR = 60;
-  const MAX_NUMBER_WITH_LEADING_ZERO = 9;
   let eventDurationFormatted;
 
   if (durationInMinutes) {

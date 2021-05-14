@@ -4,11 +4,11 @@ import AbstractView from './abstract.js';
 const getEndDateCorrectViewFormat = (beginDate, sortedTripPoints) => {
   if (!beginDate) {
     return ' ';
-  } else {
-    return dayjs(beginDate).month() === dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).month()
-      ? dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).format('DD')
-      : dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).format('MMM DD');
   }
+
+  return dayjs(beginDate).month() === dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).month()
+    ? dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).format('DD')
+    : dayjs(sortedTripPoints[sortedTripPoints.length - 1].endDate).format('MMM DD');
 };
 
 const createTripInfoTemplate = (allTripPointsData) => {
@@ -26,24 +26,18 @@ const createTripInfoTemplate = (allTripPointsData) => {
     return ' ';
   }
 
-  // module9-task2
-  // нам нужно модифицировать отображение городов:
-  // если кол-во разных городов = 1, то отобразить этот город.
-  // если кол-во разных городов = 2, то отобразить их через " - ".
-  // если кол-во разных городов = 3, то отобразить их через " - ".
-  // если кол-во разных городов > 3, то отобразить их так: Город 1 - ... - Город 2
   const uniqueSortedTripPoints = Array.from(new Set(sortedTripPoints.map((tripPoint) => tripPoint.destination.name)).values());
   if (uniqueSortedTripPoints.length <= 3) {
     return `<div class="trip-info__main">
     <h1 class="trip-info__title">${uniqueSortedTripPoints.join('&nbsp;&mdash;&nbsp;')}</h1>
     <p class="trip-info__dates">${beginDate}&nbsp;&mdash;&nbsp;${getEndDateCorrectViewFormat(beginDate, sortedTripPoints)}</p>
   </div>`;
-  } else {
-    return `<div class="trip-info__main">
-    <h1 class="trip-info__title">${departureTo} &mdash; ${' ... '} &mdash; ${arrivalFrom}</h1>
+  }
+
+  return `<div class="trip-info__main">
+    <h1 class="trip-info__title">${departureTo} &mdash; ... &mdash; ${arrivalFrom}</h1>
     <p class="trip-info__dates">${beginDate}&nbsp;&mdash;&nbsp;${getEndDateCorrectViewFormat(beginDate, sortedTripPoints)}</p>
   </div>`;
-  }
 };
 
 export default class TripInfoView extends AbstractView {

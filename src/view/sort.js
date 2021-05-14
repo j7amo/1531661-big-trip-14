@@ -1,9 +1,6 @@
 import AbstractView from './abstract.js';
 import { SortType } from '../const.js';
 
-// Добавим в разметку data-аттрибуты, чтобы при клике можно было определить по какой именно сортировке кликнул юзверь
-// p.s. этот вариант локализации клика предлагается в демо-проекте. Так как любая задача как правило
-// имеет несколько вариантов решений, то в этом конкретном случае клик можно локализовать, например, по классу.
 const createSortTemplate = (currentSortType) => {
   return `<form class="trip-events__trip-sort  trip-sort" action="#" method="get">
     <div class="trip-sort__item  trip-sort__item--day">
@@ -34,32 +31,24 @@ const createSortTemplate = (currentSortType) => {
 };
 
 export default class SortView extends AbstractView {
-  // ранее мы явно не определяли конструктор в классе SortView - он неявно назначался классом-родителем AbstractView
-  // теперь, так как нам надо в конструкторе засэтить дополнительные поля, то конструктор нуно явно объявить и
-  // не забыть явно вызвать родительский-конструктор
   constructor(currentSortType) {
     super();
-
     this._currentSortType = currentSortType;
-    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
+
+    this._sortTypeChangeHandler = this._sortTypeChangeHandler.bind(this);
   }
 
   getTemplate() {
     return createSortTemplate(this._currentSortType);
   }
 
-  // далее по аналогии с организацией кода в других вьюхах объявим метод-обёртку для передаваемого снаружи(презентером)
-  // коллбэка и метод, который позволяет подписать внешний коллбэк на событие клика по той или иной сортировке
-  // p.s. Возможно нужно будет добавить проверку на клик именно нужного нам тэга, чтобы избежать срабатывания коллбэка
-  // при клике по всему блоку сортировки, но это нужно ещё потестить - может и так будет работать нормально.
-  _handleSortTypeChange(evt) {
-    evt.preventDefault();
-    // передаём во внешний коллбэк значение data-аттрибута того элемента, на котором произошло событие
-    this._callback.sortTypeChange(evt.target.dataset.sortType);
-  }
-
   setActiveSortChangeHandler(callback) {
     this._callback.sortTypeChange = callback;
-    this.getElement().addEventListener('click', this._handleSortTypeChange);
+    this.getElement().addEventListener('click', this._sortTypeChangeHandler);
+  }
+
+  _sortTypeChangeHandler(evt) {
+    evt.preventDefault();
+    this._callback.sortTypeChange(evt.target.dataset.sortType);
   }
 }

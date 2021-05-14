@@ -1,9 +1,8 @@
-// презентер добавления новой точки маршрута
 import TripPointAddFormView from '../view/trip-point-add-form.js';
 import {remove, render, RenderPosition} from '../utils/render.js';
 import {UpdateType, UserAction} from '../const.js';
-import {toast} from '../utils/toast';
-import {isOnline} from '../utils/common';
+
+const newTripPointButtonElement = document.querySelector('.trip-main__event-add-btn');
 
 export default class TripPointAddPresenter {
   constructor(tripPointsListContainer, changeData, offersModel, destinationsModel) {
@@ -12,9 +11,10 @@ export default class TripPointAddPresenter {
     this._offersModel = offersModel;
     this._destinationsModel = destinationsModel;
     this._tripPointAddComponent = null;
+
     this._handleFormSubmit = this._handleFormSubmit.bind(this);
     this._handleFormCancelClick = this._handleFormCancelClick.bind(this);
-    this._handleEscKeyDown = this._handleEscKeyDown.bind(this);
+    this._escKeyDownHandler = this._escKeyDownHandler.bind(this);
   }
 
   init() {
@@ -22,39 +22,13 @@ export default class TripPointAddPresenter {
     this._tripPointAddComponent.setFormSubmitHandler(this._handleFormSubmit);
     this._tripPointAddComponent.setFormCancelHandler(this._handleFormCancelClick);
     render(this._tripPointsListContainer, this._tripPointAddComponent, RenderPosition.AFTERBEGIN);
-    document.addEventListener('keydown', this._handleEscKeyDown);
+    document.addEventListener('keydown', this._escKeyDownHandler);
   }
 
   destroy() {
     remove(this._tripPointAddComponent);
     this._tripPointAddComponent = null;
-    document.removeEventListener('keydown', this._handleEscKeyDown);
-  }
-
-  _handleEscKeyDown(evt) {
-    if (evt.key === 'Esc' || evt.key === 'Escape') {
-      evt.preventDefault();
-      this.destroy();
-      document.querySelector('.trip-main__event-add-btn').disabled = false;
-    }
-  }
-
-  _handleFormCancelClick() {
-    this.destroy();
-    document.querySelector('.trip-main__event-add-btn').disabled = false;
-  }
-
-  _handleFormSubmit(tripPoint) {
-    if (!isOnline()) {
-      toast('You can\'t save trip point while offline');
-      return;
-    }
-    this._changeData(
-      UserAction.ADD_TRIP_POINT,
-      UpdateType.MINOR,
-      tripPoint,
-    );
-    document.querySelector('.trip-main__event-add-btn').disabled = false;
+    document.removeEventListener('keydown', this._escKeyDownHandler);
   }
 
   setSaving() {
@@ -74,5 +48,27 @@ export default class TripPointAddPresenter {
     };
 
     this._tripPointAddComponent.shake(resetFormState);
+  }
+
+  _escKeyDownHandler(evt) {
+    if (evt.key === 'Esc' || evt.key === 'Escape') {
+      evt.preventDefault();
+      this.destroy();
+      newTripPointButtonElement.disabled = false;
+    }
+  }
+
+  _handleFormCancelClick() {
+    this.destroy();
+    newTripPointButtonElement.disabled = false;
+  }
+
+  _handleFormSubmit(tripPoint) {
+    this._changeData(
+      UserAction.ADD_TRIP_POINT,
+      UpdateType.MINOR,
+      tripPoint,
+    );
+    newTripPointButtonElement.disabled = false;
   }
 }

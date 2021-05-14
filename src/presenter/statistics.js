@@ -1,4 +1,3 @@
-// презентер статистики, он будет обновлять статистику с учётом изменений модели точек маршрута
 import {remove, render, RenderPosition, replace} from '../utils/render.js';
 import StatisticsView from '../view/statistics.js';
 
@@ -15,6 +14,7 @@ export default class StatisticsPresenter {
     this._tripPointsModel.addObserver(this._handleModelEvent);
     const prevStatisticsComponent = this._statisticsComponent;
     this._statisticsComponent = new StatisticsView(this._tripPointsModel.getTripPoints());
+
     if (prevStatisticsComponent === null) {
       render(this._statisticsContainer, this._statisticsComponent, RenderPosition.BEFOREEND);
       return;
@@ -24,7 +24,6 @@ export default class StatisticsPresenter {
     remove(prevStatisticsComponent);
   }
 
-  // добавим метод для полного уничтожения статистики (этот метод нам понадобится в точке входа)
   destroy() {
     remove(this._statisticsComponent);
     this._statisticsComponent = null;

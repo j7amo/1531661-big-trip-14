@@ -84,12 +84,9 @@ const createTripPointCreationFormTemplate = (tripPoint, getEventTypesPickerMarku
 };
 
 export default class TripPointAddFormView extends AbstractForm {
-  constructor(eventTypeToOffersMap, destinations) {
+  constructor(eventTypeToOffersPairs, destinations) {
     super();
-    // при создании экземпляра вьюхи формы создания точки маршрута будем инициализировать базовое состояние вьюхи,
-    // эти данные в идеале пользователь в процессе заполнения формы задаст и при сабмите мы их добавим в модель
-    // точек маршрута
-    this._eventTypeToOffersMap = eventTypeToOffersMap;
+    this._eventTypeToOffersPairs = eventTypeToOffersPairs;
     this._destinations = destinations;
     this._initialStateData = {
       price: undefined,
@@ -99,29 +96,28 @@ export default class TripPointAddFormView extends AbstractForm {
       id: nanoid(),
       isFavorite: false,
       offers: [],
-      type: Array.from(this._eventTypeToOffersMap.keys())[0],
+      type: Array.from(this._eventTypeToOffersPairs.keys())[0],
     };
     this._stateData = Object.assign({}, this._initialStateData);
 
-    this._handleFormCancel = this._handleFormCancel.bind(this);
-    this._handleFormSubmit = this._handleFormSubmit.bind(this);
+    this._formCancelHandler = this._formCancelHandler.bind(this);
+    this._formSubmitHandler = this._formSubmitHandler.bind(this);
     this._getEventTypesPickerMarkup = this._getEventTypesPickerMarkup.bind(this);
     this._getDestinationOptionsMarkup = this._getDestinationOptionsMarkup.bind(this);
     this._getDestinationDescriptionMarkup = this._getDestinationDescriptionMarkup.bind(this);
     this._initAvailableOffersMarkup = this._initAvailableOffersMarkup.bind(this);
-    this._handlePriceInput = this._handlePriceInput.bind(this);
+    this._priceInputHandler = this._priceInputHandler.bind(this);
     this._handleBeginDateChange = this._handleBeginDateChange.bind(this);
     this._handleEndDateChange = this._handleEndDateChange.bind(this);
-    this._handleEventTypeChange = this._handleEventTypeChange.bind(this);
-    this._handleEventOffersToggle = this._handleEventOffersToggle.bind(this);
-    this._handleDestinationChange = this._handleDestinationChange.bind(this);
+    this._eventTypeChangeHandler = this._eventTypeChangeHandler.bind(this);
+    this._eventOffersToggleHandler = this._eventOffersToggleHandler.bind(this);
+    this._destinationChangeHandler = this._destinationChangeHandler.bind(this);
     this._initDatePicker = this._initDatePicker.bind(this);
-    this._handleBeginDateClick = this._handleBeginDateClick.bind(this);
-    this._handleEndDateClick = this._handleEndDateClick.bind(this);
+    this._beginDateClickHandler = this._beginDateClickHandler.bind(this);
+    this._endDateClickHandler = this._endDateClickHandler.bind(this);
     this._destroyBeginDatePicker = this._destroyBeginDatePicker.bind(this);
     this._destroyEndDatePicker = this._destroyEndDatePicker.bind(this);
 
-    // не забываем, что при создании нового экземпляра вьюхи мы должны "развесить" внутренние обработчики
     this._setInnerHandlers();
   }
 
@@ -129,14 +125,9 @@ export default class TripPointAddFormView extends AbstractForm {
     return createTripPointCreationFormTemplate(this._stateData, this._getEventTypesPickerMarkup, this._getDestinationOptionsMarkup, this._initAvailableOffersMarkup, this._getDestinationDescriptionMarkup);
   }
 
-  _handleFormCancel(evt) {
-    evt.preventDefault();
-    this._callback.cancelAdd();
-  }
-
   setFormCancelHandler(callback) {
     this._callback.cancelAdd = callback;
-    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._handleFormCancel);
+    this.getElement().querySelector('.event__reset-btn').addEventListener('click', this._formCancelHandler);
   }
 
   reset() {
@@ -149,16 +140,19 @@ export default class TripPointAddFormView extends AbstractForm {
   }
 
   restoreHandlers() {
-    // переподписываем внутренние
     this._setInnerHandlers();
-    // переподписываем внешние
     this.setFormSubmitHandler(this._callback.formSubmit);
     this.setFormCancelHandler(this._callback.cancelAdd);
   }
 
+  _formCancelHandler(evt) {
+    evt.preventDefault();
+    this._callback.cancelAdd();
+  }
+
   _initAvailableOffersMarkup() {
     let availableOffersOptionsMarkup = '';
-    const availableOffers = this._eventTypeToOffersMap.get(this._stateData.type).offers;
+    const availableOffers = this._eventTypeToOffersPairs.get(this._stateData.type).offers;
     for (let i = 0; i < availableOffers.length; i++) {
       const randomId = nanoid();
       const offerTemplate = `<div class="event__offer-selector">
